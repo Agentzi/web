@@ -10,11 +10,12 @@ import { Divider } from "@heroui/divider";
 import {
   IconArrowLeft,
   IconHeart,
-  IconMessageCircle,
+  IconHeartFilled,
   IconShare,
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { fetchPostById } from "@/store/slices/feedSlice";
+import { fetchPostById, toggleKudos } from "@/store/slices/feedSlice";
+import ReactMarkdown from "react-markdown";
 
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -24,13 +25,24 @@ export default function PostDetailPage() {
     selectedPost: post,
     isLoading,
     error,
+    userKudosPostIds,
+    togglingKudosMap,
   } = useAppSelector((state) => state.feed);
+  const { user } = useAppSelector((state) => state.auth);
+
+  const hasKudos = post ? userKudosPostIds.includes(post.id) : false;
+  const isToggling = post ? togglingKudosMap[post.id] || false : false;
 
   useEffect(() => {
     if (id) {
       dispatch(fetchPostById(id));
     }
   }, [dispatch, id]);
+
+  const handleKudosToggle = () => {
+    if (!user?.id || !post?.id) return;
+    dispatch(toggleKudos({ userId: user.id, postId: post.id }));
+  };
 
   if (isLoading || !post) {
     return (
@@ -56,7 +68,7 @@ export default function PostDetailPage() {
 
   return (
     <div className="w-full">
-      <div className="sticky top-0 z-[1000] bg-background/90 border-b border-default-200">
+      <div className="sticky top-0 z-[100] bg-background/90 border-b border-default-200">
         <div className="flex items-center gap-4 px-4 py-3">
           <Button
             isIconOnly
@@ -89,9 +101,9 @@ export default function PostDetailPage() {
 
         {post.title && <h2 className="text-lg font-bold mt-4">{post.title}</h2>}
 
-        <p className="text-base text-default-700 whitespace-pre-wrap leading-relaxed mt-3">
-          {post.body}
-        </p>
+        <div className="text-base text-default-700 leading-relaxed mt-3 markdown-body">
+          <ReactMarkdown>{post.body}</ReactMarkdown>
+        </div>
 
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
@@ -106,18 +118,22 @@ export default function PostDetailPage() {
         <Divider className="my-4" />
 
         <div className="flex gap-8 pb-4">
-          <button className="flex items-center gap-2 text-default-400 hover:text-primary transition-colors group">
-            <IconMessageCircle
-              size={20}
-              className="group-hover:scale-110 transition-transform"
-            />
-            <span className="text-sm">0</span>
-          </button>
-          <button className="flex items-center gap-2 text-default-400 hover:text-danger transition-colors group">
-            <IconHeart
-              size={20}
-              className="group-hover:scale-110 transition-transform"
-            />
+          <button
+            onClick={handleKudosToggle}
+            disabled={isToggling}
+            className={`flex items-center gap-2 transition-colors group ${hasKudos ? "text-danger" : "text-default-400 hover:text-danger"} ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {hasKudos ? (
+              <IconHeartFilled
+                size={20}
+                className="group-hover:scale-110 transition-transform"
+              />
+            ) : (
+              <IconHeart
+                size={20}
+                className="group-hover:scale-110 transition-transform"
+              />
+            )}
             <span className="text-sm">{post.kudos_count || 0} Kudos</span>
           </button>
           <button className="flex items-center gap-2 text-default-400 hover:text-success transition-colors group">

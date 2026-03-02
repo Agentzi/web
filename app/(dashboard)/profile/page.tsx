@@ -4,74 +4,59 @@ import { useEffect, useState } from "react";
 import { Avatar } from "@heroui/avatar";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
-import { Input } from "@heroui/input";
 import { Spinner } from "@heroui/spinner";
 import { Card, CardBody } from "@heroui/card";
-import { Chip } from "@heroui/chip";
 import {
   IconCalendar,
   IconMail,
-  IconAt,
   IconEdit,
-  IconCheck,
-  IconX,
   IconRobot,
   IconPlus,
 } from "@tabler/icons-react";
-import NextLink from "next/link";
+import { useDisclosure } from "@heroui/modal";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { getUser, updateUser } from "@/store/slices/authSlice";
-
-interface EditData {
-  first_name: string;
-  last_name: string;
-  username: string;
-}
+import { getUser } from "@/store/slices/authSlice";
+import {
+  fetchAgentByDevId,
+  toggleAgentState,
+  toggleAgentStateLocal,
+} from "@/store/slices/agentSlice";
+import { Switch } from "@heroui/switch";
+import { Agent } from "@/types/agent";
+import EditAgentModal from "@/components/modals/EditAgentModal";
+import CreateAgentModal from "@/components/modals/CreateAgentModal";
+import EditProfileModal from "@/components/modals/EditProfileModal";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const dispatch = useAppDispatch();
   const { user, isLoading } = useAppSelector((state) => state.auth);
   const { agents } = useAppSelector((state) => state.agent);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<EditData>({
-    first_name: "",
-    last_name: "",
-    username: "",
-  });
+  const router = useRouter();
+
+  const editProfileModal = useDisclosure();
+  const createAgentModal = useDisclosure();
+  const editAgentModal = useDisclosure();
+  const [editingAgent, setEditingAgent] = useState<Agent | null>(null);
+
+  const handleToggleAgentState = (agentId: string) => {
+    dispatch(toggleAgentState(agentId));
+    dispatch(toggleAgentStateLocal(agentId));
+  };
+
+  const openEditAgentModal = (agent: Agent) => {
+    setEditingAgent(agent);
+    editAgentModal.onOpen();
+  };
 
   useEffect(() => {
     if (!user) {
       dispatch(getUser());
     }
+    if (user) {
+      dispatch(fetchAgentByDevId(user?.id as string));
+    }
   }, [dispatch, user]);
-
-  useEffect(() => {
-    if (user) {
-      setEditData({
-        first_name: user.first_name,
-        last_name: user.last_name,
-        username: user.username,
-      });
-    }
-  }, [user]);
-
-  const handleSave = async () => {
-    const result = await dispatch(updateUser(editData));
-    if (updateUser.fulfilled.match(result)) {
-      setIsEditing(false);
-    }
-  };
-
-  const handleCancel = () => {
-    if (user) {
-      setEditData({
-        first_name: user.first_name,
-        last_name: user.last_name,
-        username: user.username,
-      });
-    }
-    setIsEditing(false);
-  };
 
   if (isLoading && !user) {
     return (
@@ -91,7 +76,7 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full">
-      <div className="sticky top-0 z-[1000] bg-background/90 border-b border-default-200">
+      <div className="sticky top-0 z-[1] bg-background/90 border-b border-default-200">
         <div className="px-4 py-3">
           <h1 className="text-xl font-bold">Profile</h1>
         </div>
@@ -108,84 +93,23 @@ export default function ProfilePage() {
           classNames={{ base: "w-20 h-20 text-2xl" }}
         />
         <div className="pb-2">
-          {isEditing ? (
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="flat"
-                color="danger"
-                startContent={<IconX size={16} />}
-                onPress={handleCancel}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                variant="flat"
-                color="success"
-                startContent={<IconCheck size={16} />}
-                isLoading={isLoading}
-                onPress={handleSave}
-              >
-                Save
-              </Button>
-            </div>
-          ) : (
-            <Button
-              size="sm"
-              variant="bordered"
-              className="rounded-full"
-              startContent={<IconEdit size={16} />}
-              onPress={() => setIsEditing(true)}
-            >
-              Edit profile
-            </Button>
-          )}
+          <Button
+            size="sm"
+            variant="bordered"
+            startContent={<IconEdit size={16} />}
+            onPress={editProfileModal.onOpen}
+          >
+            Edit profile
+          </Button>
         </div>
       </div>
 
       <div className="px-4 mt-3">
-        {isEditing ? (
-          <div className="flex flex-col gap-3 max-w-sm">
-            <Input
-              label="First Name"
-              labelPlacement="outside"
-              size="sm"
-              value={editData.first_name}
-              onValueChange={(v: string) =>
-                setEditData((prev: EditData) => ({ ...prev, first_name: v }))
-              }
-            />
-            <Input
-              label="Last Name"
-              labelPlacement="outside"
-              size="sm"
-              value={editData.last_name}
-              onValueChange={(v: string) =>
-                setEditData((prev: EditData) => ({ ...prev, last_name: v }))
-              }
-            />
-            <Input
-              label="Username"
-              labelPlacement="outside"
-              size="sm"
-              startContent={
-                <span className="text-default-400 text-small">@</span>
-              }
-              value={editData.username}
-              onValueChange={(v: string) =>
-                setEditData((prev: EditData) => ({ ...prev, username: v }))
-              }
-            />
-          </div>
-        ) : (
-          <>
-            <h2 className="text-xl font-bold">
-              {user.first_name} {user.last_name}
-            </h2>
-            <p className="text-default-400 text-sm">@{user.username}</p>
-          </>
-        )}
+        <h2 className="text-xl font-bold">
+          {user.first_name} {user.last_name}
+        </h2>
+        <p className="text-default-400 text-sm">@{user.username}</p>
+        <p className="text-default-400 text-sm pt-2">{user.bio}</p>
 
         <div className="flex flex-wrap gap-4 mt-3 text-sm text-default-400">
           <div className="flex items-center gap-1">
@@ -214,12 +138,11 @@ export default function ProfilePage() {
             <h3 className="text-lg font-bold">Your Agents</h3>
           </div>
           <Button
-            as={NextLink}
-            href="/agents/create"
             size="sm"
             variant="flat"
             color="success"
             startContent={<IconPlus size={16} />}
+            onPress={createAgentModal.onOpen}
           >
             New Agent
           </Button>
@@ -230,11 +153,10 @@ export default function ProfilePage() {
             <IconRobot size={40} />
             <p className="text-sm">No agents created yet.</p>
             <Button
-              as={NextLink}
-              href="/agents/create"
               size="sm"
               variant="flat"
               color="success"
+              onPress={createAgentModal.onOpen}
             >
               Create your first agent
             </Button>
@@ -244,7 +166,11 @@ export default function ProfilePage() {
             {agents.map((agent) => (
               <Card
                 key={agent.id}
-                className="shadow-none border border-default-200"
+                isPressable
+                onPress={() =>
+                  router.push(`/agents/dev/${agent.agent_username}`)
+                }
+                className="shadow-none ult-200 cursor-pointer"
               >
                 <CardBody className="flex flex-row items-center gap-3 p-3">
                   <Avatar
@@ -260,19 +186,46 @@ export default function ProfilePage() {
                       @{agent.agent_username}
                     </p>
                   </div>
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color={agent.is_active ? "success" : "default"}
+                  <div
+                    className="flex items-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {agent.is_active ? "Active" : "Inactive"}
-                  </Chip>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="flat"
+                      color="default"
+                      startContent={<IconEdit size={16} />}
+                      onPress={() => openEditAgentModal(agent)}
+                    ></Button>
+                    <Switch
+                      size="sm"
+                      color={agent.is_active ? "success" : "default"}
+                      isSelected={agent.is_active}
+                      onValueChange={() => handleToggleAgentState(agent.id)}
+                    ></Switch>
+                  </div>
                 </CardBody>
               </Card>
             ))}
           </div>
         )}
       </div>
+
+      <EditProfileModal
+        isOpen={editProfileModal.isOpen}
+        onOpenChange={editProfileModal.onOpenChange}
+        user={user}
+      />
+      <CreateAgentModal
+        isOpen={createAgentModal.isOpen}
+        onOpenChange={createAgentModal.onOpenChange}
+      />
+      <EditAgentModal
+        agent={editingAgent}
+        isOpen={editAgentModal.isOpen}
+        onOpenChange={editAgentModal.onOpenChange}
+      />
     </div>
   );
 }

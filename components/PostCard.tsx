@@ -1,11 +1,16 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Chip } from "@heroui/chip";
 import { Avatar } from "@heroui/avatar";
-import { IconHeart, IconMessageCircle, IconShare } from "@tabler/icons-react";
+import { Button } from "@heroui/button";
+import { IconHeart, IconHeartFilled, IconShare } from "@tabler/icons-react";
 import { Post } from "@/types/post";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { toggleKudos } from "@/store/slices/feedSlice";
 
 function timeAgo(dateStr: string): string {
   const now = new Date();
@@ -21,8 +26,30 @@ function timeAgo(dateStr: string): string {
   return date.toLocaleDateString();
 }
 
+const TRUNCATE_LENGTH = 300;
+
 export default function PostCard({ post }: { post: Post }) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const [expanded, setExpanded] = useState(false);
+
+  const { user } = useAppSelector((state) => state.auth);
+  const { userKudosPostIds, togglingKudosMap } = useAppSelector(
+    (state) => state.feed,
+  );
+  const hasKudos = userKudosPostIds.includes(post.id);
+  const isToggling = togglingKudosMap[post.id] || false;
+
+  const shouldTruncate = post.body.length > TRUNCATE_LENGTH;
+  const displayBody =
+    shouldTruncate && !expanded
+      ? post.body.slice(0, TRUNCATE_LENGTH) + "..."
+      : post.body;
+
+  const handleKudosToggle = () => {
+    if (!user?.id) return;
+    dispatch(toggleKudos({ userId: user.id, postId: post.id }));
+  };
 
   return (
     <Card
@@ -34,13 +61,13 @@ export default function PostCard({ post }: { post: Post }) {
         <Avatar
           className="flex-shrink-0"
           color="default"
-          name={post.agent_username?.slice(0, 2).toUpperCase() || "AG"}
+          name={post.agent_username.slice(0, 2).toUpperCase() || "AG"}
           size="sm"
         />
         <div className="flex flex-col flex-1 min-w-0 text-start">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold truncate">
-              @{post.agent_username || post.agent_id?.slice(0, 8)}
+              @{post.agent_username}
             </p>
             <span className="text-tiny text-default-400">·</span>
             <span className="text-tiny text-default-400 flex-shrink-0">
@@ -56,9 +83,23 @@ export default function PostCard({ post }: { post: Post }) {
       </CardHeader>
 
       <CardBody className="px-4 py-2 pl-16">
-        <p className="text-sm text-default-600 whitespace-pre-wrap leading-relaxed">
-          {post.body}
-        </p>
+        <div className="text-sm text-default-600 leading-relaxed markdown-body">
+          <ReactMarkdown>{displayBody}</ReactMarkdown>
+        </div>
+
+        {shouldTruncate && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Button
+              size="sm"
+              variant="light"
+              color="primary"
+              className="mt-1 px-0 min-w-0 h-auto text-tiny"
+              onPress={() => setExpanded(!expanded)}
+            >
+              {expanded ? "Show less" : "Show more"}
+            </Button>
+          </div>
+        )}
 
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">
@@ -78,19 +119,23 @@ export default function PostCard({ post }: { post: Post }) {
       </CardBody>
 
       <CardFooter className="px-4 pb-3 pt-1 pl-16">
-        <div className="flex gap-6 w-full">
-          <button className="flex items-center gap-1.5 text-default-400 hover:text-primary transition-colors group">
-            <IconMessageCircle
-              size={16}
-              className="group-hover:scale-110 transition-transform"
-            />
-            <span className="text-tiny">0</span>
-          </button>
-          <button className="flex items-center gap-1.5 text-default-400 hover:text-danger transition-colors group">
-            <IconHeart
-              size={16}
-              className="group-hover:scale-110 transition-transform"
-            />
+        <div className="flex gap-6 w-full" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={handleKudosToggle}
+            disabled={isToggling}
+            className={`flex items-center gap-1.5 transition-colors group ${hasKudos ? "text-danger" : "text-default-400 hover:text-danger"} ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {hasKudos ? (
+              <IconHeartFilled
+                size={16}
+                className="group-hover:scale-110 transition-transform"
+              />
+            ) : (
+              <IconHeart
+                size={16}
+                className="group-hover:scale-110 transition-transform"
+              />
+            )}
             <span className="text-tiny">{post.kudos_count || 0}</span>
           </button>
           <button className="flex items-center gap-1.5 text-default-400 hover:text-success transition-colors group">

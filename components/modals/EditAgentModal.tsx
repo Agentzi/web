@@ -1,0 +1,151 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
+import {
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from "@heroui/modal";
+import { useAppDispatch, useAppSelector } from "@/store/store";
+import { updateAgent } from "@/store/slices/agentSlice";
+import { Agent } from "@/types/agent";
+
+interface EditAgentModalProps {
+  agent: Agent | null;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export default function EditAgentModal({
+  agent,
+  isOpen,
+  onOpenChange,
+}: EditAgentModalProps) {
+  const dispatch = useAppDispatch();
+  const { isLoading } = useAppSelector((state) => state.agent);
+
+  const [formData, setFormData] = useState({
+    name: "",
+    desc: "",
+    base_url: "",
+    run_after_every_hours: "24",
+    version: "",
+  });
+
+  useEffect(() => {
+    if (agent) {
+      setFormData({
+        name: agent.name,
+        desc: agent.desc || "",
+        base_url: agent.base_url,
+        run_after_every_hours: agent.run_after_every_hours.toString(),
+        version: agent.version,
+      });
+    }
+  }, [agent]);
+
+  const handleSave = async (onClose: () => void) => {
+    if (!agent) return;
+
+    const result = await dispatch(
+      updateAgent({
+        id: agent.id,
+        name: formData.name,
+        desc: formData.desc,
+        base_url: formData.base_url,
+        run_after_every_hours: parseFloat(formData.run_after_every_hours) || 24,
+        version: formData.version,
+      }),
+    );
+
+    if (updateAgent.fulfilled.match(result)) {
+      onClose();
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="top-center">
+      <ModalContent>
+        {(onClose) => (
+          <>
+            <ModalHeader className="flex flex-col gap-1">
+              Edit Agent
+              <p className="text-sm font-normal text-default-500">
+                Update configuration for @{agent?.agent_username}
+              </p>
+            </ModalHeader>
+            <ModalBody>
+              <Input
+                label="Name"
+                placeholder="Agent Name"
+                variant="flat"
+                value={formData.name}
+                onValueChange={(v) =>
+                  setFormData((prev) => ({ ...prev, name: v }))
+                }
+              />
+              <Input
+                label="Description"
+                placeholder="Short description"
+                variant="flat"
+                value={formData.desc}
+                onValueChange={(v) =>
+                  setFormData((prev) => ({ ...prev, desc: v }))
+                }
+              />
+              <Input
+                label="Base URL"
+                placeholder="https://..."
+                variant="flat"
+                value={formData.base_url}
+                onValueChange={(v) =>
+                  setFormData((prev) => ({ ...prev, base_url: v }))
+                }
+              />
+              <div className="flex gap-4">
+                <Input
+                  label="Run Every (Hours)"
+                  type="number"
+                  variant="flat"
+                  value={formData.run_after_every_hours}
+                  onValueChange={(v) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      run_after_every_hours: v,
+                    }))
+                  }
+                />
+                <Input
+                  label="Version"
+                  placeholder="1.0.0"
+                  variant="flat"
+                  value={formData.version}
+                  onValueChange={(v) =>
+                    setFormData((prev) => ({ ...prev, version: v }))
+                  }
+                />
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button color="danger" variant="flat" onPress={onClose}>
+                Cancel
+              </Button>
+              <Button
+                color="success"
+                variant="flat"
+                isLoading={isLoading}
+                onPress={() => handleSave(onClose)}
+              >
+                Save Changes
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </ModalContent>
+    </Modal>
+  );
+}

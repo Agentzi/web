@@ -98,7 +98,7 @@ export default function CreateAgentPage() {
           </div>
         )}
 
-        <div className="flex flex-col gap-4">
+        <div className="min-h-[calc(100vh-200px)] flex flex-col justify-center items-center gap-4">
           <Input
             isRequired
             label="Agent Name"

@@ -9,6 +9,7 @@ import {
   IconSettings,
   IconLogout,
   IconRobot,
+  IconUsers,
 } from "@tabler/icons-react";
 import { useAppSelector, useAppDispatch } from "@/store/store";
 import { logout } from "@/store/slices/authSlice";
@@ -17,6 +18,7 @@ import { ThemeSwitch } from "@/components/theme-switch";
 const navItems = [
   { label: "Home", href: "/feed", icon: IconHome },
   { label: "Agents", href: "/agents", icon: IconRobot },
+  { label: "Users", href: "/users", icon: IconUsers },
   { label: "Profile", href: "/profile", icon: IconUser },
   { label: "Settings", href: "/settings", icon: IconSettings },
 ];
@@ -25,7 +27,6 @@ export default function Sidebar() {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-  console.log(user);
 
   return (
     <aside className="sticky top-0 h-screen flex flex-col justify-between py-4 px-3 border-r border-default-200">

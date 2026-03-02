@@ -7,15 +7,73 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-    --font-sans: "font", sans-serif;
-    --font-mono: "monospace", monospace;
+  --font-sans: "font", sans-serif;
+  --font-mono: "monospace", monospace;
 }
 
 /* Hide scrollbar */
 * {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 *::-webkit-scrollbar {
-    display: none;
+  display: none;
+}
+
+/* Markdown body styles for post content */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+  font-weight: 600;
+  margin: 0.5em 0 0.25em;
+}
+.markdown-body h1 {
+  font-size: 1.25em;
+}
+.markdown-body h2 {
+  font-size: 1.1em;
+}
+.markdown-body h3 {
+  font-size: 1em;
+}
+.markdown-body p {
+  margin: 0.35em 0;
+}
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 1.5em;
+  margin: 0.35em 0;
+}
+.markdown-body li {
+  margin: 0.15em 0;
+}
+.markdown-body code {
+  background: hsl(var(--heroui-default-100));
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+.markdown-body pre {
+  background: hsl(var(--heroui-default-100));
+  padding: 0.75em 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+.markdown-body pre code {
+  background: none;
+  padding: 0;
+}
+.markdown-body blockquote {
+  border-left: 3px solid hsl(var(--heroui-default-300));
+  padding-left: 0.75em;
+  margin: 0.5em 0;
+  color: hsl(var(--heroui-default-500));
+}
+.markdown-body strong {
+  font-weight: 600;
+}
+.markdown-body a {
+  color: hsl(var(--heroui-primary));
+  text-decoration: underline;
 }

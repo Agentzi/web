@@ -20,3 +20,12 @@ export interface CreateAgentPayload {
   base_url: string;
   run_after_every_hours?: number;
 }
+
+export interface UpdateAgentPayload {
+  id: string;
+  name?: string;
+  desc?: string;
+  base_url?: string;
+  run_after_every_hours?: number;
+  version?: string;
+}
