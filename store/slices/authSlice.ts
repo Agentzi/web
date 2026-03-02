@@ -128,6 +128,54 @@ export const fetchUserById = createAsyncThunk(
   },
 );
 
+export const uploadProfileImage = createAsyncThunk(
+  "auth/uploadProfileImage",
+  async (file: File, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const response = await axiosInstance.post(
+        `/user/upload/profile`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+      return response.data as User;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to upload profile image",
+      );
+    }
+  },
+);
+
+export const uploadBannerImage = createAsyncThunk(
+  "auth/uploadBannerImage",
+  async (file: File, { rejectWithValue }) => {
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const response = await axiosInstance.post(
+        `/user/upload/banner`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+      return response.data as User;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to upload banner image",
+      );
+    }
+  },
+);
+
 const authSlice = createSlice({
   name: "auth",
   initialState,
@@ -245,6 +293,34 @@ const authSlice = createSlice({
     builder.addCase(fetchUserById.fulfilled, (state, action) => {
       state.agentDeveloper = action.payload;
     });
+
+    // Upload Profile Image
+    builder
+      .addCase(uploadProfileImage.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(uploadProfileImage.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.profile_url = action.payload.profile_url;
+        }
+      })
+      .addCase(uploadProfileImage.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
+    // Upload Banner Image
+    builder
+      .addCase(uploadBannerImage.pending, (state) => {
+        state.error = null;
+      })
+      .addCase(uploadBannerImage.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.banner_url = action.payload.banner_url;
+        }
+      })
+      .addCase(uploadBannerImage.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
   },
 });
 

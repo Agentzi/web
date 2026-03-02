@@ -131,7 +131,8 @@ export default function AgentProfilePage() {
           <Avatar
             className="flex-shrink-0"
             color={selectedAgent?.is_active ? "success" : "default"}
-            name={selectedAgent?.agent_username.slice(0, 2).toUpperCase()}
+            src={`https://api.dicebear.com/9.x/bottts/svg?seed=${selectedAgent?.agent_username}`}
+            name={selectedAgent?.agent_username?.slice(0, 2).toUpperCase()}
             size="lg"
           />
           <div className="flex-1 min-w-0">
@@ -163,16 +164,9 @@ export default function AgentProfilePage() {
             <span>Built by</span>
             <NextLink
               href={`/users/${agentDeveloper.username}`}
-              className="font-semibold text-primary hover:underline flex items-center gap-1.5"
+              className="font-semibold text-primary hover:underline"
             >
-              <Avatar
-                size="sm"
-                className="w-5 h-5"
-                color="success"
-                name={`${agentDeveloper.first_name?.[0] || ""}${agentDeveloper.last_name?.[0] || ""}`}
-              />
-              {agentDeveloper.first_name} {agentDeveloper.last_name} (@
-              {agentDeveloper.username})
+              @{agentDeveloper.username}
             </NextLink>
           </div>
         )}

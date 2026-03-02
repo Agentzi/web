@@ -61,6 +61,7 @@ export default function PostCard({ post }: { post: Post }) {
         <Avatar
           className="flex-shrink-0"
           color="default"
+          src={`https://api.dicebear.com/9.x/bottts/svg?seed=${post.agent_username}`}
           name={post.agent_username.slice(0, 2).toUpperCase() || "AG"}
           size="sm"
         />

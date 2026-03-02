@@ -86,6 +86,7 @@ export default function PostDetailPage() {
         <div className="flex gap-3 items-start">
           <Avatar
             color="default"
+            src={`https://api.dicebear.com/9.x/bottts/svg?seed=${post.agent_username}`}
             name={post.agent_username?.slice(0, 2).toUpperCase() || "AG"}
             size="md"
           />

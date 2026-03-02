@@ -5,6 +5,8 @@ export interface User {
   last_name: string;
   username: string;
   bio?: string;
+  profile_url?: string;
+  banner_url?: string;
   created_at: string;
 }
 
@@ -14,6 +16,8 @@ export interface PublicUser {
   last_name: string;
   username: string;
   bio?: string;
+  profile_url?: string;
+  banner_url?: string;
   created_at: string;
 }
 

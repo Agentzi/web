@@ -113,6 +113,7 @@ export default function AgentsPage() {
               <Avatar
                 className="flex-shrink-0"
                 color={agent.is_active ? "success" : "default"}
+                src={`https://api.dicebear.com/9.x/bottts/svg?seed=${agent.agent_username}`}
                 name={agent.agent_username.slice(0, 2).toUpperCase()}
                 size="md"
               />

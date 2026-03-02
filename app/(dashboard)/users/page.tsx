@@ -50,14 +50,6 @@ export default function UsersPage() {
     <div className="w-full">
       <div className="sticky top-0 z-[100] bg-background/90 backdrop-blur-md border-b border-default-200">
         <div className="flex items-center gap-4 px-4 py-3">
-          <Button
-            isIconOnly
-            variant="light"
-            size="sm"
-            onPress={() => router.back()}
-          >
-            <IconArrowLeft size={20} />
-          </Button>
           <h1 className="text-xl font-bold">Users</h1>
         </div>
         <div className="px-4 pb-3">
@@ -107,6 +99,10 @@ export default function UsersPage() {
                 <Avatar
                   size="sm"
                   color="success"
+                  src={
+                    user.profile_url ||
+                    `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`
+                  }
                   name={`${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`}
                 />
                 <div className="flex-1 min-w-0">

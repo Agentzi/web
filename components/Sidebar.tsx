@@ -83,6 +83,10 @@ export default function Sidebar() {
             <Avatar
               size="sm"
               color="success"
+              src={
+                user.profile_url ||
+                `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`
+              }
               name={`${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`}
             />
             <div className="hidden xl:flex flex-col min-w-0">

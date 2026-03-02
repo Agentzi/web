@@ -5,16 +5,16 @@ import { useParams, useRouter } from "next/navigation";
 import { Avatar } from "@heroui/avatar";
 import { Spinner } from "@heroui/spinner";
 import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
+import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Chip } from "@heroui/chip";
 import { Divider } from "@heroui/divider";
 import {
   IconArrowLeft,
+  IconCircleCheck,
+  IconCircleX,
   IconCalendar,
   IconRobot,
   IconMoodEmpty,
-  IconCircleCheck,
-  IconCircleX,
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchUserByUsername, clearViewedUser } from "@/store/slices/authSlice";
@@ -89,7 +89,6 @@ export default function UserProfilePage() {
 
   return (
     <div className="w-full">
-      {/* Header */}
       <div className="sticky top-0 z-[100] bg-background/90 backdrop-blur-md border-b border-default-200">
         <div className="flex items-center gap-4 px-4 py-3">
           <Button
@@ -111,30 +110,45 @@ export default function UserProfilePage() {
         </div>
       </div>
 
-      {/* Profile section */}
-      <div className="px-4 py-6">
-        <div className="flex items-start gap-4">
+      <div className="relative h-32 bg-gradient-to-r from-default-200 to-default-100 group">
+        {viewedUser?.banner_url && (
+          <img
+            src={viewedUser.banner_url}
+            alt="Banner"
+            className="w-full h-full object-cover"
+          />
+        )}
+      </div>
+
+      <div className="px-4 -mt-12 flex justify-between items-end relative z-10">
+        <div className="relative group">
           <Avatar
-            className="flex-shrink-0"
-            color="success"
+            className="ring-4 ring-background"
+            color="default"
+            src={
+              viewedUser?.profile_url ||
+              `https://api.dicebear.com/9.x/avataaars/svg?seed=${viewedUser?.username}`
+            }
             name={`${viewedUser?.first_name?.[0] || ""}${viewedUser?.last_name?.[0] || ""}`}
             size="lg"
+            classNames={{ base: "w-20 h-20 text-2xl bg-default-200" }}
           />
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold">
-              {viewedUser?.first_name} {viewedUser?.last_name}
-            </h2>
-            <p className="text-sm text-default-400">@{viewedUser?.username}</p>
-          </div>
         </div>
+      </div>
+
+      <div className="px-4 mt-3">
+        <h2 className="text-xl font-bold">
+          {viewedUser?.first_name} {viewedUser?.last_name}
+        </h2>
+        <p className="text-sm text-default-400">@{viewedUser?.username}</p>
 
         {viewedUser?.bio && (
-          <p className="text-sm text-default-600 mt-4 leading-relaxed">
+          <p className="text-sm text-default-600 mt-2 leading-relaxed">
             {viewedUser.bio}
           </p>
         )}
 
-        <div className="flex flex-wrap gap-4 mt-4 text-sm text-default-400">
+        <div className="flex flex-wrap gap-4 mt-3 text-sm text-default-400">
           <div className="flex items-center gap-1.5">
             <IconCalendar size={16} />
             <span>
@@ -152,80 +166,85 @@ export default function UserProfilePage() {
         </div>
       </div>
 
-      <Divider />
+      <Divider className="mt-4" />
 
-      {/* Agents section */}
-      <div>
-        <div className="px-4 py-3">
-          <h3 className="text-sm font-semibold">Agents</h3>
-        </div>
+      <div className="">
+        <div className="px-4 py-6">
+          <h3 className="text-lg font-bold mb-4">Agents</h3>
 
-        {agentsLoading && (
-          <div className="flex justify-center items-center py-10">
-            <Spinner color="default" size="md" />
-          </div>
-        )}
+          {agentsLoading && (
+            <div className="flex justify-center items-center py-10">
+              <Spinner color="default" size="md" />
+            </div>
+          )}
 
-        {!agentsLoading && agents.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 gap-2 text-default-400">
-            <IconMoodEmpty size={36} />
-            <p className="text-sm">No agents yet</p>
-          </div>
-        )}
+          {!agentsLoading && agents.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-10 gap-2 text-default-400">
+              <IconMoodEmpty size={36} />
+              <p className="text-sm">No agents yet</p>
+            </div>
+          )}
 
-        {!agentsLoading && agents.length > 0 && (
-          <div className="flex flex-col">
-            {agents.map((agent) => (
-              <Card
-                key={agent.id}
-                isPressable
-                onPress={() => router.push(`/agents/${agent.agent_username}`)}
-                className="bg-transparent rounded-none shadow-none border-b border-default-200 hover:bg-default-50 transition-colors"
-              >
-                <CardBody className="flex flex-row items-center gap-3 px-4 py-3">
-                  <Avatar
-                    size="sm"
-                    color={agent.is_active ? "success" : "default"}
-                    name={agent.agent_username.slice(0, 2).toUpperCase()}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold truncate">
-                        {agent.name}
+          {!agentsLoading && agents.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {agents.map((agent) => (
+                <Card
+                  key={agent.id}
+                  isPressable
+                  onPress={() => router.push(`/agents/${agent.agent_username}`)}
+                  className="w-full hover:scale-[1.02] transition-transform duration-200"
+                >
+                  <CardHeader className="flex gap-3 px-4 pt-4 pb-0">
+                    <Avatar
+                      size="sm"
+                      color={agent.is_active ? "success" : "default"}
+                      src={`https://api.dicebear.com/9.x/bottts/svg?seed=${agent.agent_username}`}
+                      name={agent.agent_username.slice(0, 2).toUpperCase()}
+                    />
+                    <div className="flex flex-col flex-1 min-w-0 text-left">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold truncate leading-tight">
+                          {agent.name}
+                        </p>
+                        {agent.is_active ? (
+                          <IconCircleCheck
+                            size={14}
+                            className="text-success flex-shrink-0"
+                          />
+                        ) : (
+                          <IconCircleX
+                            size={14}
+                            className="text-default-400 flex-shrink-0"
+                          />
+                        )}
+                      </div>
+                      <p className="text-tiny text-default-400 truncate leading-tight mt-0.5">
+                        @{agent.agent_username}
                       </p>
-                      {agent.is_active ? (
-                        <IconCircleCheck
-                          size={14}
-                          className="text-success flex-shrink-0"
-                        />
-                      ) : (
-                        <IconCircleX
-                          size={14}
-                          className="text-default-400 flex-shrink-0"
-                        />
-                      )}
                     </div>
-                    <p className="text-tiny text-default-400 truncate">
-                      @{agent.agent_username}
+                  </CardHeader>
+                  <CardBody className="px-4 py-3">
+                    <p className="text-sm text-default-500 line-clamp-2 min-h-[40px] text-left">
+                      {agent.desc || "No description provided."}
                     </p>
-                    {agent.desc && (
-                      <p className="text-tiny text-default-500 truncate mt-0.5">
-                        {agent.desc}
-                      </p>
-                    )}
-                  </div>
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color={agent.is_active ? "success" : "default"}
-                  >
-                    {agent.is_active ? "Active" : "Inactive"}
-                  </Chip>
-                </CardBody>
-              </Card>
-            ))}
-          </div>
-        )}
+                  </CardBody>
+                  <CardFooter className="px-4 pb-4 pt-0 flex justify-between items-center">
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      color={agent.is_active ? "success" : "default"}
+                    >
+                      {agent.is_active ? "Active" : "Inactive"}
+                    </Chip>
+                    <span className="text-tiny text-default-400">
+                      v{agent.version}
+                    </span>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

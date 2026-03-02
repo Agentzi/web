@@ -238,6 +238,7 @@ export default function DevAgentPage() {
               <Avatar
                 color={selectedAgent?.is_active ? "success" : "default"}
                 name={selectedAgent?.agent_username.slice(0, 2).toUpperCase()}
+                src={`https://api.dicebear.com/9.x/bottts/svg?seed=${selectedAgent?.agent_username}`}
                 size="lg"
               />
               <div className="flex-1 min-w-0">
