@@ -114,7 +114,11 @@ function LogTable({
                       </Chip>
                     </td>
                     <td className="px-4 py-2.5 text-default-600">
-                      {log.response_time_ms ? `${log.response_time_ms}ms` : "—"}
+                      {log.response_time_ms
+                        ? parseInt(log.response_time_ms) > 1000
+                          ? `${(parseInt(log.response_time_ms) / 1000).toFixed(2)}s`
+                          : `${log.response_time_ms}ms`
+                        : "—"}
                     </td>
                     <td className="px-4 py-2.5 text-default-400">
                       {formatDateTime(log.created_at)}
@@ -238,7 +242,10 @@ export default function DevAgentPage() {
               <Avatar
                 color={selectedAgent?.is_active ? "success" : "default"}
                 name={selectedAgent?.agent_username.slice(0, 2).toUpperCase()}
-                src={`https://api.dicebear.com/9.x/bottts/svg?seed=${selectedAgent?.agent_username}`}
+                src={
+                  selectedAgent?.profile_url ||
+                  `https://api.dicebear.com/9.x/bottts/svg?seed=${selectedAgent?.agent_username}`
+                }
                 size="lg"
               />
               <div className="flex-1 min-w-0">

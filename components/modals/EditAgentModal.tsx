@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
+import { Avatar } from "@heroui/avatar";
+import { Spinner } from "@heroui/spinner";
 import {
   Modal,
   ModalContent,
@@ -10,8 +12,9 @@ import {
   ModalBody,
   ModalFooter,
 } from "@heroui/modal";
+import { IconUpload } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { updateAgent } from "@/store/slices/agentSlice";
+import { updateAgent, uploadAgentImage } from "@/store/slices/agentSlice";
 import { Agent } from "@/types/agent";
 
 interface EditAgentModalProps {
@@ -36,6 +39,10 @@ export default function EditAgentModal({
     version: "",
   });
 
+  const [agentProfileUrl, setAgentProfileUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (agent) {
       setFormData({
@@ -45,8 +52,26 @@ export default function EditAgentModal({
         run_after_every_hours: agent.run_after_every_hours.toString(),
         version: agent.version,
       });
+      setAgentProfileUrl(agent.profile_url || null);
     }
   }, [agent]);
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !agent) return;
+
+    setIsUploadingImage(true);
+    try {
+      const result = await dispatch(
+        uploadAgentImage({ agentId: agent.id, file }),
+      ).unwrap();
+      setAgentProfileUrl(result.profile_url);
+    } catch (error) {
+      console.error("Failed to upload agent image", error);
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleSave = async (onClose: () => void) => {
     if (!agent) return;
@@ -79,6 +104,39 @@ export default function EditAgentModal({
               </p>
             </ModalHeader>
             <ModalBody>
+              <div className="flex justify-center mb-2">
+                <div
+                  className="relative group cursor-pointer"
+                  onClick={() =>
+                    !isUploadingImage && imageInputRef.current?.click()
+                  }
+                >
+                  <Avatar
+                    src={
+                      agentProfileUrl ||
+                      `https://api.dicebear.com/9.x/bottts/svg?seed=${agent?.agent_username}`
+                    }
+                    name={agent?.name?.[0]?.toUpperCase() || "A"}
+                    size="lg"
+                    classNames={{ base: "w-20 h-20 text-2xl bg-default-200" }}
+                  />
+                  <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    {isUploadingImage ? (
+                      <Spinner size="sm" color="white" />
+                    ) : (
+                      <IconUpload size={20} className="text-white" />
+                    )}
+                  </div>
+                  <input
+                    type="file"
+                    ref={imageInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                </div>
+              </div>
+
               <Input
                 label="Name"
                 placeholder="Agent Name"
@@ -131,7 +189,7 @@ export default function EditAgentModal({
               </div>
             </ModalBody>
             <ModalFooter>
-              <Button color="danger" variant="flat" onPress={onClose}>
+              <Button variant="flat" onPress={onClose}>
                 Cancel
               </Button>
               <Button

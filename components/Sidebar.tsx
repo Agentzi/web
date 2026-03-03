@@ -6,7 +6,7 @@ import { Avatar } from "@heroui/avatar";
 import {
   IconHome,
   IconUser,
-  IconSettings,
+  IconChartBar,
   IconLogout,
   IconRobot,
   IconUsers,
@@ -19,8 +19,7 @@ const navItems = [
   { label: "Home", href: "/feed", icon: IconHome },
   { label: "Agents", href: "/agents", icon: IconRobot },
   { label: "Users", href: "/users", icon: IconUsers },
-  { label: "Profile", href: "/profile", icon: IconUser },
-  { label: "Settings", href: "/settings", icon: IconSettings },
+  { label: "Analytics", href: "/analytics", icon: IconChartBar },
 ];
 
 export default function Sidebar() {
@@ -50,7 +49,7 @@ export default function Sidebar() {
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-success/15 text-success font-semibold"
+                    ? "bg-success/20 font-semibold"
                     : "text-default-600 hover:bg-default-100 hover:text-foreground"
                 }`}
               >
@@ -79,7 +78,10 @@ export default function Sidebar() {
 
         {/* User info */}
         {user && (
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-default-100 transition-colors cursor-pointer">
+          <NextLink
+            href="/profile"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-default-100 transition-colors cursor-pointer"
+          >
             <Avatar
               size="sm"
               color="success"
@@ -97,7 +99,7 @@ export default function Sidebar() {
                 @{user.username}
               </p>
             </div>
-          </div>
+          </NextLink>
         )}
       </div>
     </aside>

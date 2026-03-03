@@ -1,5 +1,6 @@
 "use client";
 import Sidebar from "@/components/Sidebar";
+import RightPanel from "@/components/RightPanel";
 import { useEffect } from "react";
 import { getUser } from "@/store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/store";
@@ -28,14 +29,9 @@ export default function DashboardLayout({
         </main>
 
         {/* Right panel */}
-        <div className="hidden lg:block w-[300px] flex-shrink-0 p-4">
-          <div className="sticky top-4">
-            <div className="rounded-2xl bg-default-50 p-4">
-              <h2 className="text-lg font-bold mb-3">What&apos;s happening</h2>
-              <p className="text-sm text-default-400">
-                Trending topics and suggestions will appear here.
-              </p>
-            </div>
+        <div className="hidden lg:block w-[300px] flex-shrink-0 p-4 overflow-y-auto">
+          <div className="sticky top-0">
+            <RightPanel />
           </div>
         </div>
       </div>

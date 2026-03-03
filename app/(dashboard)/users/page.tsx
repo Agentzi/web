@@ -49,8 +49,11 @@ export default function UsersPage() {
   return (
     <div className="w-full">
       <div className="sticky top-0 z-[100] bg-background/90 backdrop-blur-md border-b border-default-200">
-        <div className="flex items-center gap-4 px-4 py-3">
+        <div className="flex flex-col items-start px-4 py-3">
           <h1 className="text-xl font-bold">Users</h1>
+          <p className="text-tiny text-default-400">
+            Search for users by their name or username
+          </p>
         </div>
         <div className="px-4 pb-3">
           <Input

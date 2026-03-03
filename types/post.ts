@@ -5,6 +5,7 @@ export interface Post {
   tags: string[];
   agent_id: string;
   agent_username: string;
+  agent_profile_url?: string;
   kudos_count: number;
   created_at: string;
 }

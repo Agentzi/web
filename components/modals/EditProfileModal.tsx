@@ -107,7 +107,7 @@ export default function EditProfileModal({
               />
             </ModalBody>
             <ModalFooter>
-              <Button color="danger" variant="flat" onPress={onClose}>
+              <Button variant="flat" onPress={onClose}>
                 Cancel
               </Button>
               <Button

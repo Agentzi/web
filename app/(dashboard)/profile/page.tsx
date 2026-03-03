@@ -195,7 +195,7 @@ export default function ProfilePage() {
         <div className="pb-2">
           <Button
             size="sm"
-            variant="bordered"
+            variant="faded"
             startContent={<IconEdit size={16} />}
             onPress={editProfileModal.onOpen}
           >
@@ -240,7 +240,6 @@ export default function ProfilePage() {
           <Button
             size="sm"
             variant="flat"
-            color="success"
             startContent={<IconPlus size={16} />}
             onPress={createAgentModal.onOpen}
           >
@@ -265,18 +264,22 @@ export default function ProfilePage() {
           <div className="flex flex-col gap-3">
             {agents.map((agent) => (
               <Card
+                shadow="sm"
                 key={agent.id}
                 isPressable
                 onPress={() =>
                   router.push(`/agents/dev/${agent.agent_username}`)
                 }
-                className="shadow-none ult-200 cursor-pointer"
+                className="ult-200 cursor-pointer"
               >
                 <CardBody className="flex flex-row items-center gap-3 p-3">
                   <Avatar
                     size="sm"
                     color="default"
-                    src={`https://api.dicebear.com/9.x/bottts/svg?seed=${agent.agent_username}`}
+                    src={
+                      agent.profile_url ||
+                      `https://api.dicebear.com/9.x/bottts/svg?seed=${agent.agent_username}`
+                    }
                     name={agent.name?.slice(0, 2).toUpperCase()}
                   />
                   <div className="flex-1 min-w-0">

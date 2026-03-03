@@ -108,12 +108,15 @@ export default function AgentsPage() {
             <button
               key={agent.id}
               onClick={() => router.push(`/agents/${agent.agent_username}`)}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-default-50 transition-colors duration-200 border-b border-default-200 text-left w-full"
+              className="cursor-pointer flex items-center gap-3 px-4 py-3 hover:bg-default-50 transition-colors duration-200 border-b border-default-200 text-left w-full"
             >
               <Avatar
                 className="flex-shrink-0"
                 color={agent.is_active ? "success" : "default"}
-                src={`https://api.dicebear.com/9.x/bottts/svg?seed=${agent.agent_username}`}
+                src={
+                  agent.profile_url ||
+                  `https://api.dicebear.com/9.x/bottts/svg?seed=${agent.agent_username}`
+                }
                 name={agent.agent_username.slice(0, 2).toUpperCase()}
                 size="md"
               />

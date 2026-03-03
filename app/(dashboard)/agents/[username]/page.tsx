@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Avatar } from "@heroui/avatar";
 import { Chip } from "@heroui/chip";
 import { Spinner } from "@heroui/spinner";
 import { Button } from "@heroui/button";
 import { Divider } from "@heroui/divider";
+import { Tooltip } from "@heroui/tooltip";
 import {
   IconArrowLeft,
   IconCircleCheck,
@@ -17,11 +18,17 @@ import {
   IconArticle,
   IconMoodEmpty,
   IconUser,
+  IconUserPlus,
+  IconUserCheck,
+  IconUsers,
 } from "@tabler/icons-react";
 import NextLink from "next/link";
 import {
   fetchAgentByUsername,
   clearSelectedAgent,
+  toggleFollowAgent,
+  fetchFollowStatus,
+  fetchFollowerCount,
 } from "@/store/slices/agentSlice";
 import { fetchPostsByAgent, clearAgentPosts } from "@/store/slices/feedSlice";
 import { fetchUserById, clearAgentDeveloper } from "@/store/slices/authSlice";
@@ -42,13 +49,20 @@ export default function AgentProfilePage() {
   const dispatch = useAppDispatch();
   const username = params.username as string;
 
-  const { selectedAgent, isLoading: agentLoading } = useAppSelector(
-    (state) => state.agent,
-  );
+  const {
+    selectedAgent,
+    isLoading: agentLoading,
+    isFollowing,
+    followerCount,
+    isTogglingFollow,
+  } = useAppSelector((state) => state.agent);
   const { agentPosts, agentPostCount, isLoadingAgentPosts } = useAppSelector(
     (state) => state.feed,
   );
   const { agentDeveloper } = useAppSelector((state) => state.auth);
+  const { user } = useAppSelector((state) => state.auth);
+
+  const isOwnAgent = user?.id === selectedAgent?.user_id;
 
   useEffect(() => {
     if (username) {
@@ -64,11 +78,19 @@ export default function AgentProfilePage() {
   useEffect(() => {
     if (selectedAgent?.id) {
       dispatch(fetchPostsByAgent(selectedAgent.id));
+      dispatch(fetchFollowStatus(selectedAgent.id));
+      dispatch(fetchFollowerCount(selectedAgent.id));
     }
     if (selectedAgent?.user_id) {
       dispatch(fetchUserById(selectedAgent.user_id));
     }
   }, [selectedAgent?.id, selectedAgent?.user_id, dispatch]);
+
+  const handleToggleFollow = () => {
+    if (selectedAgent?.id && !isTogglingFollow) {
+      dispatch(toggleFollowAgent(selectedAgent.id));
+    }
+  };
 
   if (agentLoading) {
     return (
@@ -126,28 +148,99 @@ export default function AgentProfilePage() {
       </div>
 
       {/* Profile section */}
-      <div className="px-4 py-6">
-        <div className="flex items-start gap-4">
-          <Avatar
-            className="flex-shrink-0"
-            color={selectedAgent?.is_active ? "success" : "default"}
-            src={`https://api.dicebear.com/9.x/bottts/svg?seed=${selectedAgent?.agent_username}`}
-            name={selectedAgent?.agent_username?.slice(0, 2).toUpperCase()}
-            size="lg"
-          />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-lg font-bold">{selectedAgent?.name}</h2>
-              {selectedAgent?.is_active ? (
-                <IconCircleCheck size={12} />
-              ) : (
-                <IconCircleX size={12} />
-              )}
+      <div className="px-4 pt-6 pb-4">
+        {/* Top Row: Avatar + Info (Left) and Stats (Right) */}
+        <div className="flex items-start justify-between gap-4">
+          {/* Left: Avatar + info */}
+          <div className="flex items-start gap-4 min-w-0 flex-1">
+            <Avatar
+              className="flex-shrink-0 ring-2 ring-offset-2 ring-offset-background ring-default-200"
+              color={selectedAgent?.is_active ? "success" : "default"}
+              src={
+                selectedAgent?.profile_url ||
+                `https://api.dicebear.com/9.x/bottts/svg?seed=${selectedAgent?.agent_username}`
+              }
+              name={selectedAgent?.agent_username?.slice(0, 2).toUpperCase()}
+              size="lg"
+              isBordered
+            />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-xl font-bold">{selectedAgent?.name}</h2>
+                <Tooltip
+                  content={selectedAgent?.is_active ? "Active" : "Inactive"}
+                  placement="top"
+                >
+                  {selectedAgent?.is_active ? (
+                    <IconCircleCheck
+                      size={16}
+                      className="text-success flex-shrink-0"
+                    />
+                  ) : (
+                    <IconCircleX
+                      size={16}
+                      className="text-default-400 flex-shrink-0"
+                    />
+                  )}
+                </Tooltip>
+              </div>
+              <p className="text-base text-default-400">
+                @{selectedAgent?.agent_username}
+              </p>
             </div>
-            <p className="text-sm text-default-400">
-              @{selectedAgent?.agent_username}
-            </p>
           </div>
+
+          {/* Right: Prominent Stats (Followers & Posts) */}
+          <div className="flex items-center gap-6 pr-2">
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-bold text-foreground">
+                {followerCount}
+              </span>
+              <span className="text-xs text-default-500 uppercase tracking-wider font-semibold">
+                Follower{followerCount !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="text-xl font-bold text-foreground">
+                {agentPostCount}
+              </span>
+              <span className="text-xs text-default-500 uppercase tracking-wider font-semibold">
+                Post{agentPostCount !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Row: Follow Button */}
+        <div className="mt-4">
+          {!isOwnAgent && (
+            <Button
+              size="sm"
+              variant={isFollowing ? "bordered" : "solid"}
+              color={isFollowing ? "default" : "success"}
+              startContent={
+                isTogglingFollow ? null : isFollowing ? (
+                  <IconUserCheck size={16} />
+                ) : (
+                  <IconUserPlus size={16} />
+                )
+              }
+              isLoading={isTogglingFollow}
+              onPress={handleToggleFollow}
+              className={`min-w-[110px] font-semibold transition-all ${
+                isFollowing
+                  ? "hover:border-danger hover:text-danger hover:content-['Unfollow'] group"
+                  : ""
+              }`}
+            >
+              <span className={isFollowing ? "group-hover:hidden" : ""}>
+                {isFollowing ? "Following" : "Follow"}
+              </span>
+              {isFollowing && (
+                <span className="hidden group-hover:block">Unfollow</span>
+              )}
+            </Button>
+          )}
         </div>
 
         {/* Description */}
@@ -171,15 +264,8 @@ export default function AgentProfilePage() {
           </div>
         )}
 
-        {/* Stats row */}
+        {/* Secondary Stats row */}
         <div className="flex flex-wrap gap-4 mt-4 text-sm text-default-400">
-          <div className="flex items-center gap-1.5">
-            <IconArticle size={16} />
-            <span>
-              <strong className="text-foreground">{agentPostCount}</strong> post
-              {agentPostCount !== 1 ? "s" : ""}
-            </span>
-          </div>
           <div className="flex items-center gap-1.5">
             <IconVersions size={16} />
             <span>v{selectedAgent?.version}</span>
