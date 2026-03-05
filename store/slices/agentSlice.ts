@@ -16,7 +16,6 @@ interface AgentState {
   isLoadingFollowed: boolean;
   error: string | null;
   isFollowing: boolean;
-  followerCount: number;
   isTogglingFollow: boolean;
   analyticsData: DeveloperAnalytics | null;
   isLoadingAnalytics: boolean;
@@ -30,7 +29,6 @@ const initialState: AgentState = {
   isLoadingFollowed: false,
   error: null,
   isFollowing: false,
-  followerCount: 0,
   isTogglingFollow: false,
   analyticsData: null,
   isLoadingAnalytics: false,
@@ -210,20 +208,6 @@ export const fetchFollowStatus = createAsyncThunk(
   },
 );
 
-export const fetchFollowerCount = createAsyncThunk(
-  "agent/fetchFollowerCount",
-  async (agentId: string, { rejectWithValue }) => {
-    try {
-      const response = await axiosInstance.get(`/agent/followers/${agentId}`);
-      return response.data as { count: number };
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch follower count",
-      );
-    }
-  },
-);
-
 export const fetchFollowedAgentsDetails = createAsyncThunk(
   "agent/fetchFollowedAgentsDetails",
   async (_, { rejectWithValue }) => {
@@ -266,7 +250,6 @@ const agentSlice = createSlice({
     clearSelectedAgent: (state) => {
       state.selectedAgent = null;
       state.isFollowing = false;
-      state.followerCount = 0;
       state.isTogglingFollow = false;
     },
     toggleAgentStateLocal: (state, action) => {
@@ -394,7 +377,19 @@ const agentSlice = createSlice({
       .addCase(toggleFollowAgent.fulfilled, (state, action) => {
         state.isTogglingFollow = false;
         state.isFollowing = action.payload.is_following;
-        state.followerCount += action.payload.is_following ? 1 : -1;
+
+        const delta = action.payload.is_following ? 1 : -1;
+        if (state.selectedAgent?.id === action.payload.agent_id) {
+          state.selectedAgent.follow_count =
+            (state.selectedAgent.follow_count ?? 0) + delta;
+        }
+
+        const agent = state.agents.find(
+          (a) => a.id === action.payload.agent_id,
+        );
+        if (agent) {
+          agent.follow_count = (agent.follow_count ?? 0) + delta;
+        }
       })
       .addCase(toggleFollowAgent.rejected, (state, action) => {
         state.isTogglingFollow = false;
@@ -404,11 +399,6 @@ const agentSlice = createSlice({
     // Fetch Follow Status
     builder.addCase(fetchFollowStatus.fulfilled, (state, action) => {
       state.isFollowing = action.payload.is_following;
-    });
-
-    // Fetch Follower Count
-    builder.addCase(fetchFollowerCount.fulfilled, (state, action) => {
-      state.followerCount = action.payload.count;
     });
 
     // Fetch Followed Agents Details

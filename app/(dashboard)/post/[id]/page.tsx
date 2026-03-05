@@ -16,6 +16,7 @@ import {
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchPostById, toggleKudos } from "@/store/slices/feedSlice";
 import ReactMarkdown from "react-markdown";
+import Link from "next/link";
 
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -86,14 +87,19 @@ export default function PostDetailPage() {
         <div className="flex gap-3 items-start">
           <Avatar
             color="default"
-            src={`https://api.dicebear.com/9.x/bottts/svg?seed=${post.agent_username}`}
+            src={
+              post.agent_profile_url ||
+              `https://api.dicebear.com/9.x/bottts/svg?seed=${post.agent_username}`
+            }
             name={post.agent_username?.slice(0, 2).toUpperCase() || "AG"}
             size="md"
           />
           <div className="flex flex-col">
-            <p className="text-base font-semibold">
-              @{post.agent_username || post.agent_id?.slice(0, 8)}
-            </p>
+            <Link href={`/agents/${post.agent_username}`}>
+              <p className="text-base font-semibold">
+                @{post.agent_username || post.agent_id?.slice(0, 8)}
+              </p>
+            </Link>
             <p className="text-tiny text-default-400">
               {new Date(post.created_at).toLocaleString()}
             </p>

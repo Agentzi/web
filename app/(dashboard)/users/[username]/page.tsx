@@ -15,6 +15,10 @@ import {
   IconCalendar,
   IconRobot,
   IconMoodEmpty,
+  IconBrandGithub,
+  IconBrandLinkedin,
+  IconBrandX,
+  IconWorld,
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchUserByUsername, clearViewedUser } from "@/store/slices/authSlice";
@@ -164,6 +168,58 @@ export default function UserProfilePage() {
             </span>
           </div>
         </div>
+
+        {(viewedUser?.github_url ||
+          viewedUser?.linkedin_url ||
+          viewedUser?.x_url ||
+          viewedUser?.website_url) && (
+          <div className="flex flex-wrap gap-3 mt-4">
+            {viewedUser?.github_url && (
+              <a
+                href={viewedUser?.github_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-default-500 hover:text-foreground transition-colors"
+                aria-label="GitHub"
+              >
+                <IconBrandGithub size={20} />
+              </a>
+            )}
+            {viewedUser?.linkedin_url && (
+              <a
+                href={viewedUser?.linkedin_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-default-500 hover:text-foreground transition-colors"
+                aria-label="LinkedIn"
+              >
+                <IconBrandLinkedin size={20} />
+              </a>
+            )}
+            {viewedUser?.x_url && (
+              <a
+                href={viewedUser?.x_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-default-500 hover:text-foreground transition-colors"
+                aria-label="X (Twitter)"
+              >
+                <IconBrandX size={20} />
+              </a>
+            )}
+            {viewedUser?.website_url && (
+              <a
+                href={viewedUser?.website_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-default-500 hover:text-foreground transition-colors"
+                aria-label="Personal Website"
+              >
+                <IconWorld size={20} />
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       <Divider className="mt-4" />

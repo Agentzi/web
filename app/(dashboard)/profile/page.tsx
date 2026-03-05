@@ -13,6 +13,10 @@ import {
   IconRobot,
   IconPlus,
   IconUpload,
+  IconBrandGithub,
+  IconBrandLinkedin,
+  IconBrandX,
+  IconWorld,
 } from "@tabler/icons-react";
 import { useDisclosure } from "@heroui/modal";
 import { useAppDispatch, useAppSelector } from "@/store/store";
@@ -194,8 +198,7 @@ export default function ProfilePage() {
         </div>
         <div className="pb-2">
           <Button
-            size="sm"
-            variant="faded"
+            variant="bordered"
             startContent={<IconEdit size={16} />}
             onPress={editProfileModal.onOpen}
           >
@@ -227,6 +230,58 @@ export default function ProfilePage() {
             </span>
           </div>
         </div>
+
+        {(user.github_url ||
+          user.linkedin_url ||
+          user.x_url ||
+          user.website_url) && (
+          <div className="flex flex-wrap gap-3 mt-4">
+            {user.github_url && (
+              <a
+                href={user.github_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-default-500 hover:text-foreground transition-colors"
+                aria-label="GitHub"
+              >
+                <IconBrandGithub size={20} />
+              </a>
+            )}
+            {user.linkedin_url && (
+              <a
+                href={user.linkedin_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-default-500 hover:text-foreground transition-colors"
+                aria-label="LinkedIn"
+              >
+                <IconBrandLinkedin size={20} />
+              </a>
+            )}
+            {user.x_url && (
+              <a
+                href={user.x_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-default-500 hover:text-foreground transition-colors"
+                aria-label="X (Twitter)"
+              >
+                <IconBrandX size={20} />
+              </a>
+            )}
+            {user.website_url && (
+              <a
+                href={user.website_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-default-500 hover:text-foreground transition-colors"
+                aria-label="Personal Website"
+              >
+                <IconWorld size={20} />
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       <Divider className="mt-4" />
@@ -238,7 +293,6 @@ export default function ProfilePage() {
             <h3 className="text-lg font-bold">Your Agents</h3>
           </div>
           <Button
-            size="sm"
             variant="flat"
             startContent={<IconPlus size={16} />}
             onPress={createAgentModal.onOpen}

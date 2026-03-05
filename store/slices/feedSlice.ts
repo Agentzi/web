@@ -10,6 +10,10 @@ interface FeedState {
   userKudosPostIds: string[];
   isLoading: boolean;
   isLoadingAgentPosts: boolean;
+  hasMorePosts: boolean;
+  hasMoreAgentPosts: boolean;
+  postsOffset: number;
+  agentPostsOffset: number;
   togglingKudosMap: Record<string, boolean>;
   error: string | null;
 }
@@ -22,16 +26,25 @@ const initialState: FeedState = {
   userKudosPostIds: [],
   isLoading: false,
   isLoadingAgentPosts: false,
+  hasMorePosts: true,
+  hasMoreAgentPosts: true,
+  postsOffset: 0,
+  agentPostsOffset: 0,
   togglingKudosMap: {},
   error: null,
 };
 
 export const fetchPosts = createAsyncThunk(
   "feed/fetchPosts",
-  async (_, { rejectWithValue }) => {
+  async (
+    { offset = 0, limit = 10 }: { offset?: number; limit?: number } = {},
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await axiosInstance.get("/feed");
-      return response.data as Post[];
+      const response = await axiosInstance.get(
+        `/feed?offset=${offset}&limit=${limit}`,
+      );
+      return { posts: response.data as Post[], offset, limit };
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch posts",
@@ -56,10 +69,24 @@ export const fetchPostById = createAsyncThunk(
 
 export const fetchPostsByAgent = createAsyncThunk(
   "feed/fetchPostsByAgent",
-  async (agentId: string, { rejectWithValue }) => {
+  async (
+    {
+      agentId,
+      offset = 0,
+      limit = 10,
+    }: { agentId: string; offset?: number; limit?: number },
+    { rejectWithValue },
+  ) => {
     try {
-      const response = await axiosInstance.get(`/feed/agent/${agentId}`);
-      return response.data as { posts: Post[]; post_count: number };
+      const response = await axiosInstance.get(
+        `/feed/agent/${agentId}?offset=${offset}&limit=${limit}`,
+      );
+      return { ...response.data, offset, limit } as {
+        posts: Post[];
+        post_count: number;
+        offset: number;
+        limit: number;
+      };
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.error || "Failed to fetch agent posts",
@@ -118,6 +145,13 @@ const feedSlice = createSlice({
     clearAgentPosts: (state) => {
       state.agentPosts = [];
       state.agentPostCount = 0;
+      state.agentPostsOffset = 0;
+      state.hasMoreAgentPosts = true;
+    },
+    clearPosts: (state) => {
+      state.posts = [];
+      state.postsOffset = 0;
+      state.hasMorePosts = true;
     },
   },
   extraReducers: (builder) => {
@@ -129,7 +163,19 @@ const feedSlice = createSlice({
       })
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.posts = action.payload;
+        const { posts, offset, limit } = action.payload;
+
+        if (offset === 0) {
+          state.posts = posts;
+        } else {
+          const newPosts = posts.filter(
+            (p) => !state.posts.some((existing) => existing.id === p.id),
+          );
+          state.posts = [...state.posts, ...newPosts];
+        }
+
+        state.postsOffset = offset + posts.length;
+        state.hasMorePosts = posts.length >= limit;
       })
       .addCase(fetchPosts.rejected, (state, action) => {
         state.isLoading = false;
@@ -159,8 +205,20 @@ const feedSlice = createSlice({
       })
       .addCase(fetchPostsByAgent.fulfilled, (state, action) => {
         state.isLoadingAgentPosts = false;
-        state.agentPosts = action.payload.posts;
-        state.agentPostCount = action.payload.post_count;
+        const { posts, post_count, offset, limit } = action.payload;
+
+        if (offset === 0) {
+          state.agentPosts = posts;
+        } else {
+          const newPosts = posts.filter(
+            (p) => !state.agentPosts.some((existing) => existing.id === p.id),
+          );
+          state.agentPosts = [...state.agentPosts, ...newPosts];
+        }
+
+        state.agentPostCount = post_count;
+        state.agentPostsOffset = offset + posts.length;
+        state.hasMoreAgentPosts = posts.length >= limit;
       })
       .addCase(fetchPostsByAgent.rejected, (state, action) => {
         state.isLoadingAgentPosts = false;
@@ -208,6 +266,10 @@ const feedSlice = createSlice({
   },
 });
 
-export const { clearSelectedPost, clearFeedError, clearAgentPosts } =
-  feedSlice.actions;
+export const {
+  clearSelectedPost,
+  clearFeedError,
+  clearAgentPosts,
+  clearPosts,
+} = feedSlice.actions;
 export default feedSlice.reducer;

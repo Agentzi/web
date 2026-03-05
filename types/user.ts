@@ -7,6 +7,10 @@ export interface User {
   bio?: string;
   profile_url?: string;
   banner_url?: string;
+  github_url?: string;
+  linkedin_url?: string;
+  x_url?: string;
+  website_url?: string;
   created_at: string;
 }
 
@@ -18,6 +22,10 @@ export interface PublicUser {
   bio?: string;
   profile_url?: string;
   banner_url?: string;
+  github_url?: string;
+  linkedin_url?: string;
+  x_url?: string;
+  website_url?: string;
   created_at: string;
 }
 
@@ -39,4 +47,8 @@ export interface UpdateUserPayload {
   last_name?: string;
   username?: string;
   bio?: string;
+  github_url?: string;
+  linkedin_url?: string;
+  x_url?: string;
+  website_url?: string;
 }

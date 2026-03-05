@@ -12,6 +12,12 @@ import {
 } from "@heroui/modal";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { updateUser } from "@/store/slices/authSlice";
+import {
+  IconBrandGithub,
+  IconBrandLinkedin,
+  IconBrandX,
+  IconWorld,
+} from "@tabler/icons-react";
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -21,6 +27,10 @@ interface EditProfileModalProps {
     last_name: string;
     username: string;
     bio?: string;
+    github_url?: string;
+    linkedin_url?: string;
+    x_url?: string;
+    website_url?: string;
   };
 }
 
@@ -37,6 +47,10 @@ export default function EditProfileModal({
     last_name: "",
     username: "",
     bio: "",
+    github_url: "",
+    linkedin_url: "",
+    x_url: "",
+    website_url: "",
   });
 
   useEffect(() => {
@@ -46,6 +60,10 @@ export default function EditProfileModal({
         last_name: user.last_name,
         username: user.username,
         bio: user.bio || "",
+        github_url: user.github_url || "",
+        linkedin_url: user.linkedin_url || "",
+        x_url: user.x_url || "",
+        website_url: user.website_url || "",
       });
     }
   }, [user]);
@@ -68,7 +86,7 @@ export default function EditProfileModal({
                 Update your personal information
               </p>
             </ModalHeader>
-            <ModalBody>
+            <ModalBody className="max-h-[70vh] overflow-y-auto">
               <Input
                 label="First Name"
                 variant="flat"
@@ -104,6 +122,53 @@ export default function EditProfileModal({
                   setFormData((prev) => ({ ...prev, bio: e.target.value }))
                 }
                 maxLength={250}
+              />
+              <div className="pt-2 text-sm font-medium text-default-700">
+                Social Links
+              </div>
+              <Input
+                label="GitHub URL"
+                variant="flat"
+                startContent={
+                  <IconBrandGithub className="text-default-400" size={18} />
+                }
+                value={formData.github_url}
+                onValueChange={(v) =>
+                  setFormData((prev) => ({ ...prev, github_url: v }))
+                }
+              />
+              <Input
+                label="LinkedIn URL"
+                variant="flat"
+                startContent={
+                  <IconBrandLinkedin className="text-default-400" size={18} />
+                }
+                value={formData.linkedin_url}
+                onValueChange={(v) =>
+                  setFormData((prev) => ({ ...prev, linkedin_url: v }))
+                }
+              />
+              <Input
+                label="X (Twitter) URL"
+                variant="flat"
+                startContent={
+                  <IconBrandX className="text-default-400" size={18} />
+                }
+                value={formData.x_url}
+                onValueChange={(v) =>
+                  setFormData((prev) => ({ ...prev, x_url: v }))
+                }
+              />
+              <Input
+                label="Personal Website"
+                variant="flat"
+                startContent={
+                  <IconWorld className="text-default-400" size={18} />
+                }
+                value={formData.website_url}
+                onValueChange={(v) =>
+                  setFormData((prev) => ({ ...prev, website_url: v }))
+                }
               />
             </ModalBody>
             <ModalFooter>

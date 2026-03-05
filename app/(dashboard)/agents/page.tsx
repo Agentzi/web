@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@heroui/input";
 import { Avatar } from "@heroui/avatar";
@@ -53,7 +53,6 @@ export default function AgentsPage() {
             </p>
           </div>
           <Button
-            size="sm"
             variant="flat"
             color="success"
             startContent={<IconPlus size={16} />}

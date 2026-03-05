@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Avatar } from "@heroui/avatar";
 import { Chip } from "@heroui/chip";
@@ -28,7 +28,6 @@ import {
   clearSelectedAgent,
   toggleFollowAgent,
   fetchFollowStatus,
-  fetchFollowerCount,
 } from "@/store/slices/agentSlice";
 import { fetchPostsByAgent, clearAgentPosts } from "@/store/slices/feedSlice";
 import { fetchUserById, clearAgentDeveloper } from "@/store/slices/authSlice";
@@ -53,16 +52,50 @@ export default function AgentProfilePage() {
     selectedAgent,
     isLoading: agentLoading,
     isFollowing,
-    followerCount,
     isTogglingFollow,
   } = useAppSelector((state) => state.agent);
-  const { agentPosts, agentPostCount, isLoadingAgentPosts } = useAppSelector(
-    (state) => state.feed,
-  );
+  const {
+    agentPosts,
+    agentPostCount,
+    isLoadingAgentPosts,
+    hasMoreAgentPosts,
+    agentPostsOffset,
+  } = useAppSelector((state) => state.feed);
   const { agentDeveloper } = useAppSelector((state) => state.auth);
   const { user } = useAppSelector((state) => state.auth);
 
   const isOwnAgent = user?.id === selectedAgent?.user_id;
+  const observer = useRef<IntersectionObserver | null>(null);
+
+  const lastPostElementRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (isLoadingAgentPosts) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (
+          entries[0].isIntersecting &&
+          hasMoreAgentPosts &&
+          selectedAgent?.id
+        ) {
+          dispatch(
+            fetchPostsByAgent({
+              agentId: selectedAgent.id,
+              offset: agentPostsOffset,
+              limit: 10,
+            }),
+          );
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [
+      isLoadingAgentPosts,
+      hasMoreAgentPosts,
+      agentPostsOffset,
+      dispatch,
+      selectedAgent?.id,
+    ],
+  );
 
   useEffect(() => {
     if (username) {
@@ -77,9 +110,14 @@ export default function AgentProfilePage() {
 
   useEffect(() => {
     if (selectedAgent?.id) {
-      dispatch(fetchPostsByAgent(selectedAgent.id));
+      dispatch(
+        fetchPostsByAgent({
+          agentId: selectedAgent.id,
+          offset: 0,
+          limit: 10,
+        }),
+      );
       dispatch(fetchFollowStatus(selectedAgent.id));
-      dispatch(fetchFollowerCount(selectedAgent.id));
     }
     if (selectedAgent?.user_id) {
       dispatch(fetchUserById(selectedAgent.user_id));
@@ -194,10 +232,10 @@ export default function AgentProfilePage() {
           <div className="flex items-center gap-6 pr-2">
             <div className="flex flex-col items-center">
               <span className="text-xl font-bold text-foreground">
-                {followerCount}
+                {selectedAgent?.follow_count ?? 0}
               </span>
               <span className="text-xs text-default-500 uppercase tracking-wider font-semibold">
-                Follower{followerCount !== 1 ? "s" : ""}
+                Follower{(selectedAgent?.follow_count ?? 0) !== 1 ? "s" : ""}
               </span>
             </div>
             <div className="flex flex-col items-center">
@@ -296,27 +334,38 @@ export default function AgentProfilePage() {
           <h3 className="text-sm font-semibold">Posts</h3>
         </div>
 
-        {isLoadingAgentPosts && (
-          <div className="flex justify-center items-center py-10">
-            <Spinner color="default" size="md" label="Loading posts..." />
-          </div>
-        )}
-
-        {!isLoadingAgentPosts && agentPosts.length === 0 && (
+        {agentPosts.length === 0 && !isLoadingAgentPosts && (
           <div className="flex flex-col items-center justify-center py-10 gap-2 text-default-400">
             <IconMoodEmpty size={36} />
             <p className="text-sm">No posts yet</p>
           </div>
         )}
 
-        {!isLoadingAgentPosts && agentPosts.length > 0 && (
+        {agentPosts.length > 0 && (
           <div className="flex flex-col">
-            {agentPosts.map((post) => (
-              <div key={post.id}>
-                <PostCard post={post} />
-                <Divider className="my-0" />
-              </div>
-            ))}
+            {agentPosts.map((post, index) => {
+              if (agentPosts.length === index + 1) {
+                return (
+                  <div ref={lastPostElementRef} key={post.id}>
+                    <PostCard post={post} />
+                    <Divider className="my-0" />
+                  </div>
+                );
+              } else {
+                return (
+                  <div key={post.id}>
+                    <PostCard post={post} />
+                    <Divider className="my-0" />
+                  </div>
+                );
+              }
+            })}
+          </div>
+        )}
+
+        {isLoadingAgentPosts && (
+          <div className="flex justify-center items-center py-10">
+            <Spinner color="default" size="md" label="Loading more posts..." />
           </div>
         )}
       </div>

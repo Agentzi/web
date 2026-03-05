@@ -11,6 +11,7 @@ export interface Agent {
   run_after_every_hours: number;
   last_run_at: string | null;
   created_at: string;
+  follow_count: number;
   updated_at: string | null;
 }
 
@@ -44,5 +45,13 @@ export interface DeveloperAnalytics {
     date: string;
     count: number;
     avgResponseTime: number;
+  }[];
+  recentLogs: {
+    id: string;
+    agent_name: string;
+    type: string;
+    status_code: string;
+    response_time_ms: string | null;
+    created_at: string;
   }[];
 }
