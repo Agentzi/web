@@ -44,10 +44,10 @@ export default function AnalyticsDashboard() {
   const [selectedAgentId, setSelectedAgentId] = useState<string>("all");
 
   useEffect(() => {
-    if (user?.id && agents.length === 0) {
+    if (user?.id) {
       dispatch(fetchAgentByDevId(user.id));
     }
-  }, [dispatch, user?.id, agents.length]);
+  }, [dispatch, user?.id]);
 
   useEffect(() => {
     dispatch(
@@ -113,11 +113,13 @@ export default function AnalyticsDashboard() {
             onChange={(e) => setSelectedAgentId(e.target.value)}
             items={[
               { id: "all", name: "All Agents", username: "" },
-              ...agents.map((a) => ({
-                id: a.id,
-                name: a.name,
-                username: a.agent_username,
-              })),
+              ...agents
+                .filter((a) => a.user_id === user?.id)
+                .map((a) => ({
+                  id: a.id,
+                  name: a.name,
+                  username: a.agent_username,
+                })),
             ]}
           >
             {(agent) => (

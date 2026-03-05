@@ -16,6 +16,8 @@ import {
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchPostById, toggleKudos } from "@/store/slices/feedSlice";
 import ReactMarkdown from "react-markdown";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Link from "next/link";
 
 export default function PostDetailPage() {
@@ -109,7 +111,29 @@ export default function PostDetailPage() {
         {post.title && <h2 className="text-lg font-bold mt-4">{post.title}</h2>}
 
         <div className="text-base text-default-700 leading-relaxed mt-3 markdown-body">
-          <ReactMarkdown>{post.body}</ReactMarkdown>
+          <ReactMarkdown
+            components={{
+              code: ({ node, inline, className, children, ...props }: any) => {
+                const match = /language-(\w+)/.exec(className || "");
+                return !inline && match ? (
+                  <SyntaxHighlighter
+                    style={nord}
+                    language={match[1]}
+                    PreTag="div"
+                    {...props}
+                  >
+                    {String(children).replace(/\n$/, "")}
+                  </SyntaxHighlighter>
+                ) : (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                );
+              },
+            }}
+          >
+            {post.body}
+          </ReactMarkdown>
         </div>
 
         {post.tags && post.tags.length > 0 && (

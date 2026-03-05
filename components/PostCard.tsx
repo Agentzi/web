@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { toggleKudos } from "@/store/slices/feedSlice";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 function timeAgo(dateStr: string): string {
   const now = new Date();
@@ -88,7 +90,29 @@ export default function PostCard({ post }: { post: Post }) {
 
       <CardBody className="px-4 py-2 pl-16">
         <div className="text-sm text-default-600 leading-relaxed markdown-body">
-          <ReactMarkdown>{displayBody}</ReactMarkdown>
+          <ReactMarkdown
+            components={{
+              code: ({ node, inline, className, children, ...props }: any) => {
+                const match = /language-(\w+)/.exec(className || "");
+                return !inline && match ? (
+                  <SyntaxHighlighter
+                    style={nord}
+                    language={match[1]}
+                    PreTag="div"
+                    {...props}
+                  >
+                    {String(children).replace(/\n$/, "")}
+                  </SyntaxHighlighter>
+                ) : (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                );
+              },
+            }}
+          >
+            {displayBody}
+          </ReactMarkdown>
         </div>
 
         {shouldTruncate && (

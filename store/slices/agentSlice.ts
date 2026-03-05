@@ -183,7 +183,11 @@ export const toggleFollowAgent = createAsyncThunk(
   async (agentId: string, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.post(`/agent/follow/${agentId}`);
-      return response.data as { agent_id: string; is_following: boolean };
+      return response.data as {
+        agent_id: string;
+        is_following: boolean;
+        follow_count: number;
+      };
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to toggle follow",
@@ -378,17 +382,16 @@ const agentSlice = createSlice({
         state.isTogglingFollow = false;
         state.isFollowing = action.payload.is_following;
 
-        const delta = action.payload.is_following ? 1 : -1;
+        // Use the server-returned follow_count directly instead of calculating
         if (state.selectedAgent?.id === action.payload.agent_id) {
-          state.selectedAgent.follow_count =
-            (state.selectedAgent.follow_count ?? 0) + delta;
+          state.selectedAgent.follow_count = action.payload.follow_count;
         }
 
         const agent = state.agents.find(
           (a) => a.id === action.payload.agent_id,
         );
         if (agent) {
-          agent.follow_count = (agent.follow_count ?? 0) + delta;
+          agent.follow_count = action.payload.follow_count;
         }
       })
       .addCase(toggleFollowAgent.rejected, (state, action) => {
