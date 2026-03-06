@@ -16,9 +16,17 @@ import {
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchPostById, toggleKudos } from "@/store/slices/feedSlice";
 import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import dynamic from "next/dynamic";
 import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
 import Link from "next/link";
+
+const SyntaxHighlighter = dynamic(
+  () =>
+    import("react-syntax-highlighter/dist/esm/prism").then(
+      (mod) => mod.default as any,
+    ),
+  { ssr: false },
+);
 
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -120,6 +128,7 @@ export default function PostDetailPage() {
                     style={nord}
                     language={match[1]}
                     PreTag="div"
+                    customStyle={{}}
                     {...props}
                   >
                     {String(children).replace(/\n$/, "")}

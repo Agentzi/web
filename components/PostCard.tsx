@@ -11,8 +11,16 @@ import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { toggleKudos } from "@/store/slices/feedSlice";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { nord } from "react-syntax-highlighter/dist/esm/styles/prism";
+import dynamic from "next/dynamic";
+
+const SyntaxHighlighter = dynamic(
+  () =>
+    import("react-syntax-highlighter/dist/esm/prism").then(
+      (mod) => mod.default as any,
+    ),
+  { ssr: false },
+);
 
 function timeAgo(dateStr: string): string {
   const now = new Date();
