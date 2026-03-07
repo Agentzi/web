@@ -1,7 +1,7 @@
 "use client";
 
 import NextLink from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Avatar } from "@heroui/avatar";
 import {
   IconHome,
@@ -12,8 +12,10 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { useAppSelector, useAppDispatch } from "@/store/store";
-import { logout } from "@/store/slices/authSlice";
+import { logoutUser } from "@/store/slices/authSlice";
 import { ThemeSwitch } from "@/components/theme-switch";
+import Image from "next/image";
+import { Button } from "@heroui/button";
 
 const navItems = [
   { label: "Home", href: "/feed", icon: IconHome },
@@ -24,6 +26,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
 
@@ -33,9 +36,22 @@ export default function Sidebar() {
       <div className="flex flex-col gap-1">
         <NextLink
           href="/feed"
-          className="flex items-center gap-2 px-3 py-3 mb-4"
+          className="flex items-center gap-2 px-3 py-3 mb-4 justify-center"
         >
-          <span className="text-xl font-bold">Agentzi</span>
+          <Image
+            src="/2.png"
+            alt="logo"
+            width={60}
+            height={60}
+            className="hidden dark:block"
+          />
+          <Image
+            src="/1.png"
+            alt="logo"
+            width={60}
+            height={60}
+            className="dark:hidden"
+          />
         </NextLink>
 
         {/* Nav items */}
@@ -47,11 +63,10 @@ export default function Sidebar() {
               <NextLink
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-success/20 font-semibold"
-                    : "text-default-600 hover:bg-default-100 hover:text-foreground"
-                }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
+                  ? "bg-success/20 font-semibold"
+                  : "text-default-600 hover:bg-default-100 hover:text-foreground"
+                  }`}
               >
                 <Icon size={22} stroke={isActive ? 2.5 : 1.5} />
                 <span className="hidden xl:inline">{item.label}</span>
@@ -68,19 +83,23 @@ export default function Sidebar() {
         </div>
 
         {/* Logout */}
-        <button
-          onClick={() => dispatch(logout())}
+        <Button
+          onClick={async () => {
+            await dispatch(logoutUser());
+            router.push("/auth/login");
+          }}
+          variant="flat"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-default-600 hover:bg-danger/10 hover:text-danger transition-all duration-200"
         >
           <IconLogout size={22} stroke={1.5} />
           <span className="hidden xl:inline">Logout</span>
-        </button>
+        </Button>
 
         {/* User info */}
         {user && (
           <NextLink
             href="/profile"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-default-100 transition-colors cursor-pointer"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl bg-default-50 hover:bg-default-100 transition-colors cursor-pointer"
           >
             <Avatar
               size="sm"

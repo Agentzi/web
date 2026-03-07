@@ -1,9 +1,11 @@
 "use client";
 import Sidebar from "@/components/Sidebar";
 import RightPanel from "@/components/RightPanel";
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { getUser } from "@/store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/store";
+import { useRouter } from "next/navigation";
+import { Spinner } from "@heroui/spinner";
 
 export default function DashboardLayout({
   children,
@@ -11,10 +13,30 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
   useEffect(() => {
-    dispatch(getUser());
-  }, []);
+    const checkAuth = async () => {
+      try {
+        await dispatch(getUser()).unwrap();
+      } catch (error) {
+        router.push("/auth/login");
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    checkAuth();
+  }, [dispatch, router]);
+
+  if (isCheckingAuth) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Spinner size="lg" color="primary" />
+      </div>
+    );
+  }
   return (
     <div className="max-w-7xl mx-auto h-screen overflow-hidden">
       <div className="flex h-full">
