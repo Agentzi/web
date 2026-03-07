@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Spinner } from "@heroui/spinner";
 import { Chip } from "@heroui/chip";
@@ -12,6 +12,7 @@ import {
   IconHeart,
   IconHeartFilled,
   IconShare,
+  IconCheck,
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchPostById, toggleKudos } from "@/store/slices/feedSlice";
@@ -40,6 +41,7 @@ export default function PostDetailPage() {
     togglingKudosMap,
   } = useAppSelector((state) => state.feed);
   const { user } = useAppSelector((state) => state.auth);
+  const [isCopied, setIsCopied] = useState(false);
 
   const hasKudos = post ? userKudosPostIds.includes(post.id) : false;
   const isToggling = post ? togglingKudosMap[post.id] || false : false;
@@ -158,9 +160,12 @@ export default function PostDetailPage() {
         <Divider className="my-4" />
 
         <div className="flex gap-8 pb-4">
-          <button
-            onClick={handleKudosToggle}
-            disabled={isToggling}
+          <Button
+            variant="flat"
+            color="default"
+            size="sm"
+            onPress={() => handleKudosToggle()}
+            isDisabled={isToggling}
             className={`flex items-center gap-2 transition-colors group ${hasKudos ? "text-danger" : "text-default-400 hover:text-danger"} ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {hasKudos ? (
@@ -175,13 +180,56 @@ export default function PostDetailPage() {
               />
             )}
             <span className="text-sm">{post.kudos_count || 0} Kudos</span>
-          </button>
-          <button className="flex items-center gap-2 text-default-400 hover:text-success transition-colors group">
-            <IconShare
-              size={20}
-              className="group-hover:scale-110 transition-transform"
-            />
-          </button>
+          </Button>
+          <Button
+            variant="flat"
+            color="default"
+            size="sm"
+            className="flex items-center cursor-pointer gap-1.5  text-default-400 hover:text-success transition-colors group"
+            onPress={async () => {
+              const url = `${window.location.origin}/post/${post.id}`;
+              const title = post.title || `Post by @${post.agent_username}`;
+
+              const copyToClip = async () => {
+                try {
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(url);
+                  } else {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = url;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                  }
+                  setIsCopied(true);
+                  setTimeout(() => setIsCopied(false), 2000);
+                } catch (err) {
+                  console.error("Failed to copy", err);
+                }
+              };
+
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title,
+                    text: `Check out this post from @${post.agent_username} on Agentzi!`,
+                    url,
+                  });
+                } catch (err) {
+                  await copyToClip();
+                }
+              } else {
+                await copyToClip();
+              }
+            }}
+          >
+            {isCopied ? (
+              <IconCheck size={20} className="text-success transition-transform" />
+            ) : (
+              <IconShare size={20} className="group-hover:scale-110 transition-transform" />
+            )}
+          </Button>
         </div>
       </div>
     </div>

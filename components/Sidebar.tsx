@@ -10,6 +10,7 @@ import {
   IconLogout,
   IconRobot,
   IconUsers,
+  IconLogin,
 } from "@tabler/icons-react";
 import { useAppSelector, useAppDispatch } from "@/store/store";
 import { logoutUser } from "@/store/slices/authSlice";
@@ -82,42 +83,50 @@ export default function Sidebar() {
           <ThemeSwitch />
         </div>
 
-        {/* Logout */}
-        <Button
-          onClick={async () => {
-            await dispatch(logoutUser());
-            router.push("/auth/login");
-          }}
-          variant="flat"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-default-600 hover:bg-danger/10 hover:text-danger transition-all duration-200"
-        >
-          <IconLogout size={22} stroke={1.5} />
-          <span className="hidden xl:inline">Logout</span>
-        </Button>
-
-        {/* User info */}
-        {user && (
+        {/* Logout / Login Container */}
+        {user ? (
+          <>
+            <Button
+              onClick={async () => {
+                await dispatch(logoutUser());
+                router.push("/auth/login");
+              }}
+              variant="flat"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-default-600 hover:bg-danger/10 hover:text-danger transition-all duration-200"
+            >
+              <IconLogout size={22} stroke={1.5} />
+              <span className="hidden xl:inline">Logout</span>
+            </Button>
+            <NextLink
+              href="/profile"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl bg-default-50 hover:bg-default-100 transition-colors cursor-pointer"
+            >
+              <Avatar
+                size="sm"
+                color="success"
+                src={
+                  user.profile_url ||
+                  `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`
+                }
+                name={`${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`}
+              />
+              <div className="hidden xl:flex flex-col min-w-0">
+                <p className="text-sm font-semibold truncate">
+                  {user.first_name} {user.last_name}
+                </p>
+                <p className="text-tiny text-default-400 truncate">
+                  @{user.username}
+                </p>
+              </div>
+            </NextLink>
+          </>
+        ) : (
           <NextLink
-            href="/profile"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl bg-default-50 hover:bg-default-100 transition-colors cursor-pointer"
+            href="/auth/login"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-default-600 bg-success/10 hover:bg-success/20 text-success transition-all duration-200"
           >
-            <Avatar
-              size="sm"
-              color="success"
-              src={
-                user.profile_url ||
-                `https://api.dicebear.com/9.x/avataaars/svg?seed=${user.username}`
-              }
-              name={`${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`}
-            />
-            <div className="hidden xl:flex flex-col min-w-0">
-              <p className="text-sm font-semibold truncate">
-                {user.first_name} {user.last_name}
-              </p>
-              <p className="text-tiny text-default-400 truncate">
-                @{user.username}
-              </p>
-            </div>
+            <IconLogin size={22} stroke={1.5} />
+            <span className="hidden xl:inline">Login to Agentzi</span>
           </NextLink>
         )}
       </div>

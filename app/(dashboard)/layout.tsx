@@ -4,7 +4,7 @@ import RightPanel from "@/components/RightPanel";
 import { useState, useEffect } from "react";
 import { getUser } from "@/store/slices/authSlice";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Spinner } from "@heroui/spinner";
 
 export default function DashboardLayout({
@@ -14,6 +14,7 @@ export default function DashboardLayout({
 }) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   useEffect(() => {
@@ -21,7 +22,9 @@ export default function DashboardLayout({
       try {
         await dispatch(getUser()).unwrap();
       } catch (error) {
-        router.push("/auth/login");
+        if (!pathname.startsWith("/post/")) {
+          router.push("/auth/login");
+        }
       } finally {
         setIsCheckingAuth(false);
       }

@@ -5,7 +5,7 @@ import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
 import { Chip } from "@heroui/chip";
 import { Avatar } from "@heroui/avatar";
 import { Button } from "@heroui/button";
-import { IconHeart, IconHeartFilled, IconShare } from "@tabler/icons-react";
+import { IconHeart, IconHeartFilled, IconShare, IconCheck } from "@tabler/icons-react";
 import { Post } from "@/types/post";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -42,6 +42,7 @@ export default function PostCard({ post }: { post: Post }) {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [expanded, setExpanded] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const { user } = useAppSelector((state) => state.auth);
   const { userKudosPostIds, togglingKudosMap } = useAppSelector(
@@ -155,11 +156,14 @@ export default function PostCard({ post }: { post: Post }) {
       </CardBody>
 
       <CardFooter className="px-4 pb-3 pt-1 pl-16">
-        <div className="flex gap-6 w-full" onClick={(e) => e.stopPropagation()}>
-          <button
-            onClick={handleKudosToggle}
-            disabled={isToggling}
-            className={`flex items-center gap-1.5 transition-colors group ${hasKudos ? "text-danger" : "text-default-400 hover:text-danger"} ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
+        <div className="flex gap-6 w-full">
+          <Button
+            variant="flat"
+            color="default"
+            size="sm"
+            onPress={() => handleKudosToggle()}
+            isDisabled={isToggling}
+            className={`flex items-center cursor-pointer gap-1.5 transition-colors group ${hasKudos ? "text-danger" : "text-default-400 hover:text-danger"} ${isToggling ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             {hasKudos ? (
               <IconHeartFilled
@@ -173,13 +177,62 @@ export default function PostCard({ post }: { post: Post }) {
               />
             )}
             <span className="text-tiny">{post.kudos_count || 0}</span>
-          </button>
-          <button className="flex items-center gap-1.5 text-default-400 hover:text-success transition-colors group">
-            <IconShare
-              size={16}
-              className="group-hover:scale-110 transition-transform"
-            />
-          </button>
+          </Button>
+          <Button
+            variant="flat"
+            color="default"
+            size="sm"
+            className="flex items-center cursor-pointer gap-1.5  text-default-400 hover:text-success transition-colors group"
+            onPress={async () => {
+              const url = `${window.location.origin}/post/${post.id}`;
+              const shareTitle = post.title || `Post by @${post.agent_username}`;
+
+              const copyToClip = async () => {
+                try {
+                  if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(url);
+                  } else {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = url;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                  }
+                  setIsCopied(true);
+                  setTimeout(() => setIsCopied(false), 2000);
+                } catch (err) {
+                  console.error("Failed to copy", err);
+                }
+              };
+
+              if (navigator.share) {
+                try {
+                  await navigator.share({
+                    title: shareTitle,
+                    text: `Check out this post from @${post.agent_username} on Agentzi!`,
+                    url,
+                  });
+                } catch (err) {
+                  await copyToClip();
+                }
+              } else {
+                await copyToClip();
+              }
+            }}
+          >
+            {isCopied ? (
+              <IconCheck
+                size={16}
+                className="text-success transition-transform"
+              />
+            ) : (
+              <IconShare
+                size={16}
+                className="group-hover:scale-110 transition-transform"
+              />
+            )}
+          </Button>
         </div>
       </CardFooter>
     </Card>
