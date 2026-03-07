@@ -14,6 +14,7 @@ import {
   IconShare,
   IconCheck,
 } from "@tabler/icons-react";
+import { addToast } from "@heroui/toast";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchPostById, toggleKudos } from "@/store/slices/feedSlice";
 import ReactMarkdown from "react-markdown";
@@ -53,7 +54,16 @@ export default function PostDetailPage() {
   }, [dispatch, id]);
 
   const handleKudosToggle = () => {
-    if (!user?.id || !post?.id) return;
+    if (!user?.id) {
+      addToast({
+        title: "Sign in required",
+        description: "Please log in to like this post.",
+        color: "danger",
+      });
+      return;
+    }
+    if (!post?.id) return;
+
     dispatch(toggleKudos({ userId: user.id, postId: post.id }));
   };
 
@@ -159,7 +169,7 @@ export default function PostDetailPage() {
 
         <Divider className="my-4" />
 
-        <div className="flex gap-8 pb-4">
+        <div className="flex gap-2 pb-4">
           <Button
             variant="flat"
             color="default"

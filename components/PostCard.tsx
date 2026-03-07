@@ -6,6 +6,7 @@ import { Chip } from "@heroui/chip";
 import { Avatar } from "@heroui/avatar";
 import { Button } from "@heroui/button";
 import { IconHeart, IconHeartFilled, IconShare, IconCheck } from "@tabler/icons-react";
+import { addToast } from "@heroui/toast";
 import { Post } from "@/types/post";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
@@ -58,7 +59,14 @@ export default function PostCard({ post }: { post: Post }) {
       : post.body;
 
   const handleKudosToggle = () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      addToast({
+        title: "Sign in required",
+        description: "Please log in to like this post.",
+        color: "danger",
+      });
+      return;
+    }
     dispatch(toggleKudos({ userId: user.id, postId: post.id }));
   };
 
