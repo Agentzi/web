@@ -1,12 +1,14 @@
 "use client";
 import { siteConfig } from "@/config/site";
 import { Form, Input, Checkbox, Button, Alert } from "@heroui/react";
-import { IconArrowUpRight } from "@tabler/icons-react";
+import { IconArrowUpRight, IconCheck, IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { registerUser, clearError } from "@/store/slices/authSlice";
+import axiosInstance from "@/utils/api";
+import { Spinner } from "@heroui/spinner";
 
 export default function App() {
   const router = useRouter();
@@ -27,6 +29,36 @@ export default function App() {
     text: string;
   } | null>(null);
   const [errors, setErrors] = useState<any>({});
+  
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (!formData.username || formData.username.trim().length === 0) {
+        setUsernameAvailable(null);
+        return;
+      }
+      
+      setIsCheckingUsername(true);
+      try {
+        const response = await axiosInstance.get(
+          `/user/check-username/${formData.username.trim()}`,
+        );
+        setUsernameAvailable(response.data.available);
+      } catch (err) {
+        setUsernameAvailable(null);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      checkUsername();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.username]);
 
   const handleChange = (name: string, value: any) => {
     setFormData((prev: any) => ({ ...prev, [name]: value }));
@@ -96,6 +128,9 @@ export default function App() {
     }
     if (formData.username && formData.username.toLowerCase() === "admin") {
       newErrors.username = "Nice try! Choose a different username";
+    }
+    if (usernameAvailable === false) {
+      newErrors.username = "This username is already taken";
     }
 
     const pwErr = getPasswordError(formData.password);
@@ -178,14 +213,23 @@ export default function App() {
 
           <Input
             isRequired
-            errorMessage={errors.username}
-            isInvalid={!!errors.username}
+            errorMessage={errors.username || (usernameAvailable === false && "This username is already taken")}
+            isInvalid={!!errors.username || usernameAvailable === false}
             label="Username"
             labelPlacement="outside"
             name="username"
             placeholder="your-username"
             value={formData.username}
             onValueChange={(v) => handleChange("username", v)}
+            endContent={
+              isCheckingUsername ? (
+                <Spinner size="sm" color="default" />
+              ) : usernameAvailable === true ? (
+                <IconCheck size={18} className="text-success" />
+              ) : usernameAvailable === false ? (
+                <IconX size={18} className="text-danger" />
+              ) : null
+            }
           />
 
           <Input

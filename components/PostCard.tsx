@@ -164,7 +164,7 @@ export default function PostCard({ post }: { post: Post }) {
       </CardBody>
 
       <CardFooter className="px-4 pb-3 pt-1 pl-16">
-        <div className="flex gap-6 w-full">
+        <div className="flex gap-2 w-full">
           <Button
             variant="flat"
             color="default"

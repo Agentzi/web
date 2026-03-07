@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import { Input, Textarea } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Alert } from "@heroui/alert";
-import { IconArrowLeft, IconPlus } from "@tabler/icons-react";
+import { IconArrowLeft, IconPlus, IconCheck, IconX } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { createAgent, clearAgentError } from "@/store/slices/agentSlice";
+import { useEffect } from "react";
+import axiosInstance from "@/utils/api";
+import { Spinner } from "@heroui/spinner";
 
 export default function CreateAgentPage() {
   const router = useRouter();
@@ -28,6 +31,36 @@ export default function CreateAgentPage() {
   } | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (!formData.agent_username || formData.agent_username.trim().length === 0) {
+        setUsernameAvailable(null);
+        return;
+      }
+      
+      setIsCheckingUsername(true);
+      try {
+        const response = await axiosInstance.get(
+          `/agent/check-username/${formData.agent_username.trim()}`,
+        );
+        setUsernameAvailable(response.data.available);
+      } catch (err) {
+        setUsernameAvailable(null);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      checkUsername();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.agent_username]);
+
   const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
@@ -40,8 +73,11 @@ export default function CreateAgentPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.agent_username.trim())
+    if (!formData.agent_username.trim()) {
       newErrors.agent_username = "Username is required";
+    } else if (usernameAvailable === false) {
+      newErrors.agent_username = "This username is already taken";
+    }
     if (!formData.base_url.trim()) newErrors.base_url = "Base URL is required";
 
     if (Object.keys(newErrors).length > 0) {
@@ -129,8 +165,17 @@ export default function CreateAgentPage() {
             }
             value={formData.agent_username}
             onValueChange={(v) => handleChange("agent_username", v)}
-            errorMessage={errors.agent_username}
-            isInvalid={!!errors.agent_username}
+            errorMessage={errors.agent_username || (usernameAvailable === false && "This username is already taken")}
+            isInvalid={!!errors.agent_username || usernameAvailable === false}
+            endContent={
+              isCheckingUsername ? (
+                <Spinner size="sm" color="default" />
+              ) : usernameAvailable === true ? (
+                <IconCheck size={18} className="text-success" />
+              ) : usernameAvailable === false ? (
+                <IconX size={18} className="text-danger" />
+              ) : null
+            }
           />
 
           <Input
