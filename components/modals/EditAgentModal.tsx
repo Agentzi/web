@@ -44,6 +44,7 @@ export default function EditAgentModal({
   const [agentProfileUrl, setAgentProfileUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -95,146 +96,166 @@ export default function EditAgentModal({
     }
   };
 
-  const handleDelete = async (onClose: () => void) => {
+  const handleDelete = async () => {
     if (!agent) return;
-
-    if (!window.confirm("Are you sure you want to delete this agent? This action cannot be undone.")) {
-      return;
-    }
 
     setIsDeleting(true);
     const result = await dispatch(deleteAgent(agent.id));
     setIsDeleting(false);
 
     if (deleteAgent.fulfilled.match(result)) {
-      onClose();
-      router.push("/agents");
+      setIsConfirmOpen(false);
+      onOpenChange(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="top-center">
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              Edit Agent
-              <p className="text-sm font-normal text-default-500">
-                Update configuration for @{agent?.agent_username}
-              </p>
-            </ModalHeader>
-            <ModalBody>
-              <div className="flex justify-center mb-2">
-                <div
-                  className="relative group cursor-pointer"
-                  onClick={() =>
-                    !isUploadingImage && imageInputRef.current?.click()
-                  }
-                >
-                  <Avatar
-                    src={
-                      agentProfileUrl ||
-                      `https://api.dicebear.com/9.x/bottts/svg?seed=${agent?.agent_username}`
+    <>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} placement="top-center">
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                Edit Agent
+                <p className="text-sm font-normal text-default-500">
+                  Update configuration for @{agent?.agent_username}
+                </p>
+              </ModalHeader>
+              <ModalBody>
+                <div className="flex justify-center mb-2">
+                  <div
+                    className="relative group cursor-pointer"
+                    onClick={() =>
+                      !isUploadingImage && imageInputRef.current?.click()
                     }
-                    name={agent?.name?.[0]?.toUpperCase() || "A"}
-                    size="lg"
-                    classNames={{ base: "w-20 h-20 text-2xl bg-default-200" }}
-                  />
-                  <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    {isUploadingImage ? (
-                      <Spinner size="sm" color="white" />
-                    ) : (
-                      <IconUpload size={20} className="text-white" />
-                    )}
+                  >
+                    <Avatar
+                      src={
+                        agentProfileUrl ||
+                        `https://api.dicebear.com/9.x/bottts/svg?seed=${agent?.agent_username}`
+                      }
+                      name={agent?.name?.[0]?.toUpperCase() || "A"}
+                      size="lg"
+                      classNames={{ base: "w-20 h-20 text-2xl bg-default-200" }}
+                    />
+                    <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      {isUploadingImage ? (
+                        <Spinner size="sm" color="white" />
+                      ) : (
+                        <IconUpload size={20} className="text-white" />
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      ref={imageInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                    />
                   </div>
-                  <input
-                    type="file"
-                    ref={imageInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleImageChange}
+                </div>
+
+                <Input
+                  label="Name"
+                  placeholder="Agent Name"
+                  variant="flat"
+                  value={formData.name}
+                  onValueChange={(v) =>
+                    setFormData((prev) => ({ ...prev, name: v }))
+                  }
+                />
+                <Input
+                  label="Description"
+                  placeholder="Short description"
+                  variant="flat"
+                  value={formData.desc}
+                  onValueChange={(v) =>
+                    setFormData((prev) => ({ ...prev, desc: v }))
+                  }
+                />
+                <Input
+                  label="Base URL"
+                  placeholder="https://..."
+                  variant="flat"
+                  value={formData.base_url}
+                  onValueChange={(v) =>
+                    setFormData((prev) => ({ ...prev, base_url: v }))
+                  }
+                />
+                <div className="flex gap-4">
+                  <Input
+                    label="Run Every (Hours)"
+                    type="number"
+                    variant="flat"
+                    value={formData.run_after_every_hours}
+                    onValueChange={(v) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        run_after_every_hours: v,
+                      }))
+                    }
+                  />
+                  <Input
+                    label="Version"
+                    placeholder="1.0.0"
+                    variant="flat"
+                    value={formData.version}
+                    onValueChange={(v) =>
+                      setFormData((prev) => ({ ...prev, version: v }))
+                    }
                   />
                 </div>
-              </div>
+              </ModalBody>
+              <ModalFooter className="flex justify-between items-center w-full">
+                <Button
+                  color="danger"
+                  variant="light"
+                  onPress={() => setIsConfirmOpen(true)}
+                >
+                  Delete Agent
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="flat" onPress={onClose} isDisabled={isDeleting}>
+                    Cancel
+                  </Button>
+                  <Button
+                    color="success"
+                    variant="flat"
+                    isLoading={isLoading && !isDeleting}
+                    isDisabled={isDeleting}
+                    onPress={() => handleSave(onClose)}
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
-              <Input
-                label="Name"
-                placeholder="Agent Name"
-                variant="flat"
-                value={formData.name}
-                onValueChange={(v) =>
-                  setFormData((prev) => ({ ...prev, name: v }))
-                }
-              />
-              <Input
-                label="Description"
-                placeholder="Short description"
-                variant="flat"
-                value={formData.desc}
-                onValueChange={(v) =>
-                  setFormData((prev) => ({ ...prev, desc: v }))
-                }
-              />
-              <Input
-                label="Base URL"
-                placeholder="https://..."
-                variant="flat"
-                value={formData.base_url}
-                onValueChange={(v) =>
-                  setFormData((prev) => ({ ...prev, base_url: v }))
-                }
-              />
-              <div className="flex gap-4">
-                <Input
-                  label="Run Every (Hours)"
-                  type="number"
-                  variant="flat"
-                  value={formData.run_after_every_hours}
-                  onValueChange={(v) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      run_after_every_hours: v,
-                    }))
-                  }
-                />
-                <Input
-                  label="Version"
-                  placeholder="1.0.0"
-                  variant="flat"
-                  value={formData.version}
-                  onValueChange={(v) =>
-                    setFormData((prev) => ({ ...prev, version: v }))
-                  }
-                />
-              </div>
-            </ModalBody>
-            <ModalFooter className="flex justify-between items-center w-full">
-              <Button
-                color="danger"
-                variant="light"
-                isLoading={isDeleting}
-                onPress={() => handleDelete(onClose)}
-              >
-                Delete Agent
-              </Button>
-              <div className="flex gap-2">
-                <Button variant="flat" onPress={onClose} isDisabled={isDeleting}>
+      <Modal isOpen={isConfirmOpen} onOpenChange={setIsConfirmOpen} size="sm" placement="center">
+        <ModalContent>
+          {(onCloseConfirm) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">Confirm Deletion</ModalHeader>
+              <ModalBody>
+                <p className="text-sm text-default-600">
+                  Are you sure you want to delete <strong>{agent?.name}</strong>? This action cannot be undone.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="light" onPress={onCloseConfirm} isDisabled={isDeleting}>
                   Cancel
                 </Button>
-                <Button
-                  color="success"
-                  variant="flat"
-                  isLoading={isLoading && !isDeleting}
-                  isDisabled={isDeleting}
-                  onPress={() => handleSave(onClose)}
-                >
-                  Save Changes
+                <Button color="danger" onPress={handleDelete} isLoading={isDeleting}>
+                  Delete
                 </Button>
-              </div>
-            </ModalFooter>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+    </>
   );
 }

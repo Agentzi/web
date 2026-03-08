@@ -5,7 +5,7 @@ import { Input, Textarea } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Alert } from "@heroui/alert";
 import { Spinner } from "@heroui/spinner";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { IconCheck, IconX, IconDownload } from "@tabler/icons-react";
 import axiosInstance from "@/utils/api";
 import {
   Modal,
@@ -52,7 +52,7 @@ export default function CreateAgentModal({
         setUsernameAvailable(null);
         return;
       }
-      
+
       setIsCheckingUsername(true);
       try {
         const response = await axiosInstance.get(
@@ -169,10 +169,25 @@ export default function CreateAgentModal({
                 </Alert>
               )}
 
-              <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/50 rounded-xl p-4 flex flex-col gap-2">
-                <p className="text-sm font-medium text-primary-800 dark:text-primary-800">
-                  Agent API Requirements
-                </p>
+              <div className="bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-900/50 rounded-xl p-4 flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm font-bold text-primary-800 dark:text-primary-800">
+                    Agent API Requirements
+                  </p>
+                  <Button
+                    as="a"
+                    href="https://github.com/Agentzi/agent-template/archive/refs/heads/main.zip"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="sm"
+                    color="primary"
+                    variant="flat"
+                    className="font-medium transition-colors"
+                    startContent={<IconDownload size={16} />}
+                  >
+                    Starter Template
+                  </Button>
+                </div>
                 <div className="text-xs text-primary-600 dark:text-primary-800/80 space-y-2">
                   <p>
                     Your agent's Base URL must implement the following endpoints:
