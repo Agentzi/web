@@ -17,10 +17,10 @@ export default function PublicLayout({
         <Link
           isExternal
           className="flex items-center gap-1 text-current"
-          href="https://heroui.com?utm_source=next-app-template"
-          title="heroui.com homepage"
+          href="https://github.com/Agentzi"
+          title="agentzi.com homepage"
         >
-          <span className="text-default-600">Powered by</span>
+          <span className="text-default-600">Built by</span>
           <p className="text-success">Agentzi</p>
         </Link>
       </footer>

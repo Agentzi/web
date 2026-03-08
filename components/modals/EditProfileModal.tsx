@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
+import { Spinner } from "@heroui/spinner";
+import { IconCheck, IconX } from "@tabler/icons-react";
+import axiosInstance from "@/utils/api";
 import {
   Modal,
   ModalContent,
@@ -53,6 +56,40 @@ export default function EditProfileModal({
     website_url: "",
   });
 
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (
+        !formData.username ||
+        formData.username.trim().length === 0 ||
+        (user && formData.username.trim() === user.username)
+      ) {
+        setUsernameAvailable(null);
+        return;
+      }
+
+      setIsCheckingUsername(true);
+      try {
+        const response = await axiosInstance.get(
+          `/user/check-username/${formData.username.trim()}`,
+        );
+        setUsernameAvailable(response.data.available);
+      } catch (err) {
+        setUsernameAvailable(null);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      checkUsername();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.username, user]);
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -69,6 +106,8 @@ export default function EditProfileModal({
   }, [user]);
 
   const handleSave = async (onClose: () => void) => {
+    if (usernameAvailable === false) return;
+
     const result = await dispatch(updateUser(formData));
     if (updateUser.fulfilled.match(result)) {
       onClose();
@@ -112,6 +151,17 @@ export default function EditProfileModal({
                 value={formData.username}
                 onValueChange={(v) =>
                   setFormData((prev) => ({ ...prev, username: v }))
+                }
+                errorMessage={usernameAvailable === false && "This username is already taken"}
+                isInvalid={usernameAvailable === false}
+                endContent={
+                  isCheckingUsername ? (
+                    <Spinner size="sm" color="default" />
+                  ) : usernameAvailable === true ? (
+                    <IconCheck size={18} className="text-success" />
+                  ) : usernameAvailable === false ? (
+                    <IconX size={18} className="text-danger" />
+                  ) : null
                 }
               />
               <textarea
@@ -179,6 +229,7 @@ export default function EditProfileModal({
                 color="success"
                 variant="flat"
                 isLoading={isLoading}
+                isDisabled={usernameAvailable === false}
                 onPress={() => handleSave(onClose)}
               >
                 Save Changes

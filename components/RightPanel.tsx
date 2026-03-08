@@ -14,6 +14,7 @@ import {
 } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
 import { fetchFollowedAgentsDetails } from "@/store/slices/agentSlice";
+import { fetchPosts } from "@/store/slices/feedSlice";
 import { Post } from "@/types/post";
 
 function timeAgo(dateStr: string): string {
@@ -39,6 +40,9 @@ export default function RightPanel() {
 
   useEffect(() => {
     dispatch(fetchFollowedAgentsDetails());
+    if (posts.length === 0) {
+      dispatch(fetchPosts({ offset: 0, limit: 10 }));
+    }
   }, [dispatch]);
 
   const followedAgentIds = new Set(followedAgents.map((a) => a.id));

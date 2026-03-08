@@ -37,9 +37,6 @@ export default function FeedPage() {
 
   useEffect(() => {
     dispatch(fetchPosts({ offset: 0, limit: 10 }));
-    return () => {
-      dispatch(clearPosts());
-    };
   }, [dispatch]);
 
   useEffect(() => {

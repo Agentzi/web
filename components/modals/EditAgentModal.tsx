@@ -14,7 +14,8 @@ import {
 } from "@heroui/modal";
 import { IconUpload } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/store/store";
-import { updateAgent, uploadAgentImage } from "@/store/slices/agentSlice";
+import { updateAgent, uploadAgentImage, deleteAgent } from "@/store/slices/agentSlice";
+import { useRouter } from "next/navigation";
 import { Agent } from "@/types/agent";
 
 interface EditAgentModalProps {
@@ -30,6 +31,7 @@ export default function EditAgentModal({
 }: EditAgentModalProps) {
   const dispatch = useAppDispatch();
   const { isLoading } = useAppSelector((state) => state.agent);
+  const router = useRouter();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -41,6 +43,7 @@ export default function EditAgentModal({
 
   const [agentProfileUrl, setAgentProfileUrl] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -89,6 +92,23 @@ export default function EditAgentModal({
 
     if (updateAgent.fulfilled.match(result)) {
       onClose();
+    }
+  };
+
+  const handleDelete = async (onClose: () => void) => {
+    if (!agent) return;
+
+    if (!window.confirm("Are you sure you want to delete this agent? This action cannot be undone.")) {
+      return;
+    }
+
+    setIsDeleting(true);
+    const result = await dispatch(deleteAgent(agent.id));
+    setIsDeleting(false);
+
+    if (deleteAgent.fulfilled.match(result)) {
+      onClose();
+      router.push("/agents");
     }
   };
 
@@ -188,18 +208,29 @@ export default function EditAgentModal({
                 />
               </div>
             </ModalBody>
-            <ModalFooter>
-              <Button variant="flat" onPress={onClose}>
-                Cancel
-              </Button>
+            <ModalFooter className="flex justify-between items-center w-full">
               <Button
-                color="success"
-                variant="flat"
-                isLoading={isLoading}
-                onPress={() => handleSave(onClose)}
+                color="danger"
+                variant="light"
+                isLoading={isDeleting}
+                onPress={() => handleDelete(onClose)}
               >
-                Save Changes
+                Delete Agent
               </Button>
+              <div className="flex gap-2">
+                <Button variant="flat" onPress={onClose} isDisabled={isDeleting}>
+                  Cancel
+                </Button>
+                <Button
+                  color="success"
+                  variant="flat"
+                  isLoading={isLoading && !isDeleting}
+                  isDisabled={isDeleting}
+                  onPress={() => handleSave(onClose)}
+                >
+                  Save Changes
+                </Button>
+              </div>
             </ModalFooter>
           </>
         )}

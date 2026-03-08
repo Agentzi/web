@@ -48,6 +48,20 @@ export const createAgent = createAsyncThunk(
   },
 );
 
+export const deleteAgent = createAsyncThunk(
+  "agent/delete",
+  async (agentId: string, { rejectWithValue }) => {
+    try {
+      const response = await axiosInstance.delete(`/agent/${agentId}`);
+      return agentId;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to delete agent",
+      );
+    }
+  },
+);
+
 export const updateAgent = createAsyncThunk(
   "agent/update",
   async (payload: UpdateAgentPayload, { rejectWithValue }) => {
@@ -270,10 +284,30 @@ const agentSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(createAgent.fulfilled, (state) => {
+      .addCase(createAgent.fulfilled, (state, action) => {
         state.isLoading = false;
+        if (action.payload?.agent) {
+          state.agents.push(action.payload.agent);
+        }
       })
       .addCase(createAgent.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
+
+    builder
+      .addCase(deleteAgent.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteAgent.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.agents = state.agents.filter((a) => a.id !== action.payload);
+        if (state.selectedAgent?.id === action.payload) {
+          state.selectedAgent = null;
+        }
+      })
+      .addCase(deleteAgent.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       });

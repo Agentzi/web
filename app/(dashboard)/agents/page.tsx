@@ -44,7 +44,7 @@ export default function AgentsPage() {
   return (
     <div className="w-full">
       {/* Sticky header */}
-      <div className="sticky top-0 z-[1000] bg-background/90 backdrop-blur-md border-b border-default-200">
+      <div className="sticky top-0 z-[1] bg-background/90 backdrop-blur-md border-b border-default-200">
         <div className="flex items-center justify-between px-4 py-3">
           <div>
             <h1 className="text-xl font-bold">Agents</h1>
