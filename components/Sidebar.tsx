@@ -71,18 +71,30 @@ export default function Sidebar() {
           {navItems.map((item) => {
             const isActive = pathname === item.href;
             const Icon = item.icon;
-            return (
+            return user ? (
               <NextLink
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${isActive
-                  ? "bg-success/20 font-semibold"
-                  : "text-default-600 hover:bg-default-100 hover:text-foreground"
-                  }`}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  isActive
+                    ? "bg-success/20 font-semibold"
+                    : "text-default-600 hover:bg-default-100 hover:text-foreground"
+                }`}
               >
                 <Icon size={22} stroke={isActive ? 2.5 : 1.5} />
                 <span className="hidden xl:inline">{item.label}</span>
               </NextLink>
+            ) : (
+              <Button
+                onPress={() => router.push("/auth/login")}
+                variant="light"
+                className={`flex w-full justify-start items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200`}
+              >
+                <Icon size={22} stroke={1.5} />
+                <span className="hidden xl:inline text-start">
+                  {item.label}
+                </span>
+              </Button>
             );
           })}
         </nav>
@@ -90,7 +102,6 @@ export default function Sidebar() {
 
       {/* Bottom section */}
       <div className="flex flex-col gap-3">
-        {/* Logout / Login Container */}
         {user ? (
           <>
             <Button
@@ -110,7 +121,11 @@ export default function Sidebar() {
                 variant="flat"
                 className="flex justify-center items-center gap-3 py-2.5 rounded-xl text-sm font-medium text-default-600 hover:bg-success/10 hover:text-success transition-all duration-200 w-full"
               >
-                {mounted && theme === "dark" ? <IconSun size={22} stroke={1.5} /> : <IconMoon size={22} stroke={1.5} />}
+                {mounted && theme === "dark" ? (
+                  <IconSun size={22} stroke={1.5} />
+                ) : (
+                  <IconMoon size={22} stroke={1.5} />
+                )}
                 <span className="hidden xl:inline">Theme</span>
               </Button>
               <Button
