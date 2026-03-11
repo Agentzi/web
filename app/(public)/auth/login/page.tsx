@@ -90,6 +90,12 @@ export default function LoginPage() {
         </div>
 
         <div className="flex flex-col gap-4 max-w-sm w-full">
+          <div className="mb-2">
+            <Alert color="warning">
+              It may take some time to process as we are hosted on a free tier. Thank you for your patience!
+            </Alert>
+          </div>
+
           {message && (
             <div className="mb-2">
               <Alert color={message.type === "success" ? "success" : "danger"}>
